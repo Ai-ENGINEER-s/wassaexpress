@@ -1,405 +1,203 @@
 'use client';
+import { useState, FormEvent, ChangeEvent } from 'react';
+import { MapPin, Phone, Mail, Send, CheckCircle2 } from 'lucide-react';
 
-import React, { useRef, useState, useEffect } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import {
-  BookOpen,
-  MapPin,
-  Euro,
-  ArrowRight,
-  Info,
-  ChevronLeft,
-  ChevronRight,
-  Check,
-  Star,
-  Sparkles,
-} from 'lucide-react';
-import { Etude_CATALOGUE } from '@/data/catalogue';
-import { ThemeForOtherPages, ModuleForOtherPages } from '@/types/index';
-import Tarifs from '@/components/Tarifs';
-
-interface EtudePageProps {
-  setCurrentPage: (page: string) => void;
-  setSelectedTheme: (theme: ThemeForOtherPages) => void;
-  setSelectedModule: (module: ModuleForOtherPages) => void;
+interface FormData {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
 }
 
-// --- COMPOSANT THEMEROW ---
-function ThemeRow({
-  theme,
-  setCurrentPage,
-  setSelectedTheme,
-  setSelectedModule,
-}: {
-  theme: ThemeForOtherPages;
-  setCurrentPage: (page: string) => void;
-  setSelectedTheme: (theme: ThemeForOtherPages) => void;
-  setSelectedModule: (module: ModuleForOtherPages) => void;
-}) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
-  const [hoveredModule, setHoveredModule] = useState<string | null>(null);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
+export default function ContactPage() {
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
+  const [submitted, setSubmitted] = useState<boolean>(false);
 
-  const checkScrollButtons = () => {
-    if (scrollRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-      setCanScrollLeft(scrollLeft > 10);
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
-
-      const maxScroll = scrollWidth - clientWidth;
-      const progress = maxScroll > 0 ? scrollLeft / maxScroll : 0;
-      setScrollProgress(progress);
-
-      const cardWidth = 340;
-      const visibleCards = Math.floor(clientWidth / cardWidth);
-      const pages = Math.ceil(theme.modules.length / visibleCards);
-      setTotalPages(Math.max(pages, 1));
-    }
+  const handleSubmit = (e: FormEvent<HTMLButtonElement>): void => {
+    e.preventDefault();
+    setSubmitted(true);
+    setTimeout(() => setSubmitted(false), 3000);
   };
 
-  useEffect(() => {
-    checkScrollButtons();
-    const scrollElement = scrollRef.current;
-    if (scrollElement) {
-      scrollElement.addEventListener('scroll', checkScrollButtons);
-      window.addEventListener('resize', checkScrollButtons);
-      return () => {
-        scrollElement.removeEventListener('scroll', checkScrollButtons);
-        window.removeEventListener('resize', checkScrollButtons);
-      };
-    }
-  }, [theme.modules.length]);
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollRef.current) {
-      const scrollAmount = scrollRef.current.clientWidth * 0.85;
-      scrollRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth',
-      });
-    }
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
-  const currentPage = Math.min(
-    Math.floor(scrollProgress * totalPages),
-    totalPages - 1
-  );
-  const themeImage =
-    theme.image ||
-    theme.modules[0]?.image ||
-    'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=450&fit=crop';
 
   return (
-    <div className="mb-10 group/row">
-      {/* Theme Header - Modern Style */}
-      <div className="mb-6 px-4 md:px-12 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          {/* Modern Icon Badge */}
-          <div className="w-12 h-12 bg-gradient-to-br from-red-600 to-red-700 rounded-xl flex items-center justify-center shadow-lg shadow-red-600/20">
-            <BookOpen className="w-6 h-6 text-white" />
-          </div>
-          
-          <div>
-            <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 transition-all cursor-pointer group-hover/row:text-red-600">
-              {theme.title}
-            </h2>
-            <p className="text-sm text-gray-500 mt-0.5">{theme.modules.length} études disponibles</p>
-          </div>
+    <div className="min-h-screen bg-white">
+      
+      {/* Hero Section - Avec Image de Fond */}
+      <div className="relative bg-slate-900 border-b border-gray-100 overflow-hidden">
+        {/* Image de fond */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ 
+            backgroundImage: "url('/images/contactlandingsection.jpg')",
+            filter: 'brightness(0.4)'
+          }}
+        />
+        
+        {/* Overlay gradient */}
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/60 to-slate-900/40" />
+        
+        {/* Contenu */}
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-4">
+            Contactez-nous
+          </h1>
+          <p className="text-lg text-gray-200 max-w-2xl mx-auto">
+            Une question sur nos services ? Nous sommes là pour vous aider.
+          </p>
         </div>
-
-        {totalPages > 1 && (
-          <div className="hidden md:flex gap-2 items-center bg-white px-3 py-2 rounded-full shadow-sm border border-gray-200">
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <button
-                key={i}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  i === currentPage
-                    ? 'w-8 bg-red-600'
-                    : 'w-2 bg-gray-300 hover:bg-red-400'
-                }`}
-                onClick={() => {
-                  if (scrollRef.current) {
-                    const { scrollWidth, clientWidth } = scrollRef.current;
-                    const maxScroll = scrollWidth - clientWidth;
-                    const targetScrollLeft =
-                      totalPages > 1 ? (i / (totalPages - 1)) * maxScroll : 0;
-                    scrollRef.current.scrollTo({
-                      left: targetScrollLeft,
-                      behavior: 'smooth',
-                    });
-                  }
-                }}
-                aria-label={`Page ${i + 1}`}
-              />
-            ))}
-          </div>
-        )}
       </div>
 
-      <div className="relative group/slider px-4 md:px-12">
-        {/* Modern Navigation Buttons */}
-        {canScrollLeft && (
-          <button
-            onClick={() => scroll('left')}
-            className="absolute left-4 md:left-12 top-1/2 -translate-y-1/2 z-50 w-12 h-12 md:w-14 md:h-14 bg-white hover:bg-red-600 text-red-600 hover:text-white shadow-xl hover:shadow-2xl rounded-full transition-all duration-300 flex items-center justify-center border-2 border-red-100 hover:border-red-600 group/btn"
-            aria-label="Scroll left"
-          >
-            <ChevronLeft className="w-6 h-6 md:w-7 md:h-7 group-hover/btn:scale-110 transition-transform" />
-          </button>
-        )}
-
-        {canScrollRight && (
-          <button
-            onClick={() => scroll('right')}
-            className="absolute right-4 md:right-12 top-1/2 -translate-y-1/2 z-50 w-12 h-12 md:w-14 md:h-14 bg-white hover:bg-red-600 text-red-600 hover:text-white shadow-xl hover:shadow-2xl rounded-full transition-all duration-300 flex items-center justify-center border-2 border-red-100 hover:border-red-600 group/btn"
-            aria-label="Scroll right"
-          >
-            <ChevronRight className="w-6 h-6 md:w-7 md:h-7 group-hover/btn:scale-110 transition-transform" />
-          </button>
-        )}
-
-        <div
-          ref={scrollRef}
-          className="flex gap-3 md:gap-4 overflow-x-auto overflow-y-hidden pt-10 md:pt-12 pb-10 md:pb-12 scroll-smooth hide-scrollbar"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          {theme.modules.map((module, index) => (
-            <div
-              key={module.code}
-              className="flex-shrink-0 w-[260px] sm:w-[300px] md:w-[340px] cursor-pointer"
-              onMouseEnter={() => setHoveredModule(module.code)}
-              onMouseLeave={() => setHoveredModule(null)}
-              onClick={() => {
-                window.scrollTo(0, 0);
-                setSelectedTheme(theme);
-                setSelectedModule(module);
-                setCurrentPage('etude-detail');
-              }}
-            >
-              <div
-                className={`relative rounded-2xl overflow-visible bg-white transition-all duration-500 ${
-                  hoveredModule === module.code
-                    ? 'scale-105 md:scale-110 z-50 shadow-2xl -translate-y-3 md:-translate-y-6'
-                    : 'scale-100 z-0 shadow-lg hover:shadow-xl'
-                }`}
-                style={{
-                  transformOrigin:
-                    index === 0
-                      ? 'left'
-                      : index === theme.modules.length - 1
-                      ? 'right'
-                      : 'center',
-                }}
-              >
-                {/* Card Normal State */}
-                <div
-                  className={`relative rounded-2xl overflow-hidden transition-opacity duration-300 border border-gray-100 ${
-                    hoveredModule === module.code
-                      ? 'opacity-0'
-                      : 'opacity-100'
-                  }`}
-                >
-                  <div className="relative aspect-video">
-                    <Image
-                      src={module.image || themeImage}
-                      alt={module.title}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 260px, (max-width: 768px) 300px, 340px"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-                    
-                    {/* Modern Badge */}
-                    <div className="absolute top-3 left-3 px-3 py-1.5 bg-white/95 backdrop-blur-sm text-red-600 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
-                      <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
-                      {module.code}
-                    </div>
-                    
-                    {index === 0 && (
-                      <div className="absolute top-3 right-3 px-3 py-1.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
-                        <Star className="w-3 h-3 fill-white" />
-                        Top
-                      </div>
-                    )}
-                    
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <h3 className="text-white font-bold text-sm md:text-base leading-tight line-clamp-2 mb-2">
-                        {module.title}
-                      </h3>
-                      <div className="flex items-center gap-2 text-white/80 text-xs">
-                        <BookOpen className="w-3.5 h-3.5" />
-                        <span>Étude complète</span>
-                      </div>
-                    </div>
+      {/* Content Section */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          
+          {/* Contact Info - Épuré */}
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900 mb-8">Informations</h2>
+              
+              <div className="space-y-6">
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <MapPin className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-slate-900 mb-1">Adresse</p>
+                    <p className="text-slate-600 text-sm">Boulevard Mohammed V</p>
+                    <p className="text-slate-600 text-sm">Casablanca, Maroc</p>
                   </div>
                 </div>
 
-                {/* Card Hover State - Modern Design */}
-                {hoveredModule === module.code && (
-                  <div className="absolute inset-0 rounded-2xl overflow-hidden bg-white shadow-2xl border-2 border-red-600/20">
-                    <div className="relative aspect-video">
-                      <Image
-                        src={module.image || themeImage}
-                        alt={module.title}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 640px) 260px, (max-width: 768px) 300px, 340px"
-                        priority
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent"></div>
-                      
-                      {/* Animated Badge */}
-                      <div className="absolute top-3 left-3 px-3 py-1.5 bg-red-600 text-white rounded-full text-xs font-bold shadow-lg flex items-center gap-1 animate-pulse">
-                        <Sparkles className="w-3 h-3" />
-                        {module.code}
-                      </div>
-                    </div>
-
-                    <div className="p-5 bg-white">
-                      <h3 className="text-gray-900 font-bold text-base md:text-lg mb-3 line-clamp-2 leading-tight">
-                        {module.title}
-                      </h3>
-                      <p className="text-gray-600 text-xs md:text-sm line-clamp-3 mb-4 leading-relaxed">
-                        {module.themeDetail}
-                      </p>
-                      
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center">
-                            <BookOpen className="w-4 h-4 text-red-600" />
-                          </div>
-                          <span className="text-xs font-semibold text-gray-700">
-                            Étude complète
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center text-red-600 font-bold text-sm hover:text-red-700 transition-colors group/link">
-                          <span>Voir détails</span>
-                          <ArrowRight className="w-4 h-4 ml-1 group-hover/link:translate-x-1 transition-transform" />
-                        </div>
-                      </div>
-                    </div>
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <Phone className="w-5 h-5 text-orange-600" />
                   </div>
-                )}
+                  <div>
+                    <p className="font-medium text-slate-900 mb-1">Téléphone</p>
+                    <p className="text-slate-600 text-sm">+212 663-833056²</p>
+                    <p className="text-slate-500 text-xs mt-1">Lun - Sam: 9h - 18h</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <Mail className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-slate-900 mb-1">Email</p>
+                    <p className="text-slate-600 text-sm">contact@wassaexpress.ma</p>
+                    <p className="text-slate-500 text-xs mt-1">Réponse sous 24h</p>
+                  </div>
+                </div>
               </div>
             </div>
-          ))}
+
+            {/* Map */}
+            <div className="rounded-2xl overflow-hidden border border-gray-200">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d106276.6066733!2d-7.689155!3d33.5731104!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xda7cd4778aa113b%3A0xb06c1d84f310fd3!2sCasablanca!5e0!3m2!1sen!2sma!4v1234567890"
+                width="100%"
+                height="250"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+              ></iframe>
+            </div>
+          </div>
+
+          {/* Contact Form - Simplifié */}
+          <div className="lg:col-span-2">
+            <div className="bg-white border border-gray-200 rounded-2xl p-8">
+                 <h2 className="text-4xl font-bold mb-2 bg-gradient-to-r from-gray-900 via-red-900 to-orange-900 bg-clip-text text-transparent">
+            Envoyez un message
+          </h2>
+
+              {submitted && (
+                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  <span className="text-green-700 text-sm font-medium">Message envoyé avec succès</span>
+                </div>
+              )}
+
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Nom complet *
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-slate-900"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-slate-900"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Téléphone
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-slate-900"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Message *
+                  </label>
+                  <textarea
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    rows={6}
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-slate-900 resize-none"
+                    required
+                  ></textarea>
+                </div>
+
+                <button
+                  onClick={handleSubmit}
+                  className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-orange-500/30 transition-all duration-300 flex items-center justify-center gap-2 group"
+                >
+                  <span>Envoyer</span>
+                  <Send className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  );
-}
-
-// Composant principal
-export default function EtudePage({
-  setCurrentPage,
-  setSelectedTheme,
-  setSelectedModule,
-}: EtudePageProps) {
-  useEffect(() => {
-    const scrollToHash = () => {
-      const hash = window.location.hash;
-      if (hash) {
-        const elementId = hash.substring(1);
-        const element = document.getElementById(elementId);
-
-        if (element) {
-          setTimeout(() => {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 150);
-        }
-      }
-    };
-
-    scrollToHash();
-    window.addEventListener('hashchange', scrollToHash, false);
-
-    return () => {
-      window.removeEventListener('hashchange', scrollToHash, false);
-    };
-  }, []);
-
-  return (
-    <>
-      {/* Hero - Modern Design */}
-      <div className="pt-28 pb-20 bg-gradient-to-br from-gray-50 via-red-50/30 to-white relative overflow-hidden">
-        {/* Animated Background Effects */}
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-red-600/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 right-10 w-96 h-96 bg-red-600/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-        </div>
-        
-        <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-full text-red-700 text-sm font-semibold mb-6 shadow-sm">
-            <Star className="w-4 h-4 fill-red-600 text-red-600" />
-            <span>Nouveau Catalogue 2026</span>
-          </div>
-          
-          <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 tracking-tight">
-          Pôle  Étude
-            <span className="block text-red-600 mt-2">2026</span>
-          </h1>
-          
-          <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Découvrez nos études et analyses approfondies pour éclairer vos décisions stratégiques
-          </p>
-          
-          {/* Decorative Elements */}
-          <div className="flex justify-center gap-3 mt-10">
-            <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm">
-              <BookOpen className="w-5 h-5 text-red-600" />
-              <span className="text-sm font-medium text-gray-700">Études Approfondies</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm">
-              <Check className="w-5 h-5 text-red-600" />
-              <span className="text-sm font-medium text-gray-700">Analyses Expertes</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Catalogue des Thèmes */}
-      <section className="pt-12 md:pt-16 pb-8 md:pb-12 bg-gradient-to-b from-white to-gray-50">
-        <div className="max-w-[1920px] mx-auto">
-          {Etude_CATALOGUE.map((theme) => (
-            <div
-              id={`theme-${theme.slug}`}
-              key={theme.slug}
-              style={{ scrollMarginTop: '120px' }}
-            >
-              <ThemeRow
-                theme={theme}
-                setCurrentPage={setCurrentPage}
-                setSelectedTheme={setSelectedTheme}
-                setSelectedModule={setSelectedModule}
-              />
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Tarifs */}
-      <section className="py-16 bg-gradient-to-b from-gray-950 via-gray-900 to-black relative overflow-hidden">
-        {/* Effets de fond */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(220,38,38,0.1),transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(220,38,38,0.08),transparent_50%)]"></div>
-
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <Tarifs setCurrentPage={setCurrentPage} />
-        </div>
-      </section>
-
-      <style jsx>{`
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
-    </>
   );
 }
