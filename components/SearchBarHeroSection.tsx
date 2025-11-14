@@ -2,8 +2,16 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Search, MapPin, ArrowRight, Package, Truck, Users } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
-const categories = [
+// Define a type for the category item
+interface Category {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+}
+
+const categories: Category[] = [
   { id: 'gp', label: 'GP', icon: Users },
   { id: 'produits', label: 'Produits', icon: Package },
   { id: 'livreurs', label: 'Livreurs', icon: Truck },
@@ -20,6 +28,8 @@ export default function SearchBarHeroSection() {
   const categoryRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   // --- Fix TypeScript + déplacement fluide ---
+  // This helper function correctly returns a 'void' callback for the ref,
+  // which satisfies TypeScript.
   const setCategoryRef = (index: number) => (el: HTMLButtonElement | null) => {
     categoryRefs.current[index] = el;
   };
@@ -40,7 +50,8 @@ export default function SearchBarHeroSection() {
     console.log('Recherche:', { category: selectedCategory, keyword, location });
   };
 
-  const handleKeyDown = (e: any) => {
+  // Handle keyboard event for Enter key
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') handleSearch();
   };
 
@@ -77,6 +88,11 @@ export default function SearchBarHeroSection() {
             return (
               <button
                 key={cat.id}
+                // --- SOLUTION ---
+                // Use the helper function here.
+                // The error you saw was likely from an old version:
+                // ref={(el) => (categoryRefs.current[index] = el)}
+                // This version is correct:
                 ref={setCategoryRef(index)}
                 onClick={() => setSelectedCategory(cat.id)}
                 className={`
