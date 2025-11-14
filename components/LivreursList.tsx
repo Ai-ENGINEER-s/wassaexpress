@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { ArrowLeft, Check, MapPin, Star, Filter, Search, MessageCircle, Phone } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const LivreursList = () => {
   const router = useRouter();
@@ -11,7 +12,6 @@ const LivreursList = () => {
   const [selectedDestination, setSelectedDestination] = useState("all");
   const [availableOnly, setAvailableOnly] = useState(false);
 
-  // Données d'exemple (à remplacer par API)
   const allLivreurs = [
     {
       id: 1,
@@ -105,7 +105,6 @@ const LivreursList = () => {
     }
   ];
 
-  // Extraire les pays uniques
   const countries = useMemo(() => {
     const countriesSet = new Set<string>();
     allLivreurs.forEach(livreur => {
@@ -122,7 +121,6 @@ const LivreursList = () => {
     return Array.from(destinationsSet).sort();
   }, []);
 
-  // Filtrage
   const filteredLivreurs = useMemo(() => {
     return allLivreurs.filter(livreur => {
       const matchesSearch = 
@@ -142,18 +140,21 @@ const LivreursList = () => {
     });
   }, [searchQuery, selectedCountry, selectedDestination, availableOnly]);
 
-  const handleWhatsAppContact = (phone: string, name: string) => {
+  const handleWhatsAppContact = (e: React.MouseEvent, phone: string, name: string) => {
+    e.preventDefault();
+    e.stopPropagation();
     const message = encodeURIComponent(`Bonjour ${name}, je souhaite envoyer un colis`);
     window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
   };
 
-  const handlePhoneContact = (phone: string) => {
+  const handlePhoneContact = (e: React.MouseEvent, phone: string) => {
+    e.preventDefault();
+    e.stopPropagation();
     window.location.href = `tel:${phone}`;
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* HEADER */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <button 
@@ -178,7 +179,6 @@ const LivreursList = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* FILTRES */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
           <div className="flex items-center space-x-2 mb-4">
             <Filter className="w-5 h-5 text-[#104C9E]" />
@@ -186,7 +186,6 @@ const LivreursList = () => {
           </div>
 
           <div className="grid md:grid-cols-4 gap-4">
-            {/* RECHERCHE */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Rechercher
@@ -203,7 +202,6 @@ const LivreursList = () => {
               </div>
             </div>
 
-            {/* PAYS */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Pays
@@ -220,7 +218,6 @@ const LivreursList = () => {
               </select>
             </div>
 
-            {/* DESTINATION */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Destination
@@ -237,7 +234,6 @@ const LivreursList = () => {
               </select>
             </div>
 
-            {/* DISPONIBILITÉ */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Disponibilité
@@ -254,7 +250,6 @@ const LivreursList = () => {
             </div>
           </div>
 
-          {/* BOUTON RESET */}
           {(searchQuery || selectedCountry !== "all" || selectedDestination !== "all" || availableOnly) && (
             <button
               onClick={() => {
@@ -270,7 +265,6 @@ const LivreursList = () => {
           )}
         </div>
 
-        {/* LISTE DES LIVREURS */}
         {filteredLivreurs.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
             <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -284,12 +278,12 @@ const LivreursList = () => {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredLivreurs.map((livreur) => (
-              <div
+              <Link
                 key={livreur.id}
-                className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 overflow-hidden"
+                href={`/livreurs/${livreur.id}`}
+                className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer group"
               >
-                {/* HEADER */}
-                <div className="bg-gradient-to-br from-blue-50 to-orange-50 p-6 relative">
+                <div className="bg-gradient-to-br from-blue-50 to-orange-50 p-6 relative group-hover:from-blue-100 group-hover:to-orange-100 transition-colors">
                   {livreur.verified && (
                     <div className="absolute top-4 right-4 w-7 h-7 rounded-full bg-green-100 flex items-center justify-center">
                       <Check className="w-4 h-4 text-green-600" />
@@ -318,7 +312,6 @@ const LivreursList = () => {
                   </div>
                 </div>
 
-                {/* STATS */}
                 <div className="p-6">
                   <div className="grid grid-cols-3 gap-3 mb-4">
                     <div className="text-center">
@@ -338,7 +331,6 @@ const LivreursList = () => {
                     </div>
                   </div>
 
-                  {/* SPÉCIALITÉS */}
                   <div className="mb-4">
                     <p className="text-xs text-gray-500 mb-2">Spécialités:</p>
                     <div className="flex flex-wrap gap-2">
@@ -353,16 +345,14 @@ const LivreursList = () => {
                     </div>
                   </div>
 
-                  {/* PRIX */}
                   <div className="bg-orange-50 border border-orange-100 rounded-xl p-3 mb-4 text-center">
                     <p className="text-xs text-gray-600 mb-1">Tarif</p>
                     <p className="text-2xl font-bold text-orange-500">{livreur.price}</p>
                   </div>
 
-                  {/* BOUTONS CONTACT */}
                   <div className="space-y-2">
                     <button
-                      onClick={() => handleWhatsAppContact(livreur.whatsapp, livreur.name)}
+                      onClick={(e) => handleWhatsAppContact(e, livreur.whatsapp, livreur.name)}
                       disabled={!livreur.available}
                       className={`w-full py-2.5 px-4 rounded-xl flex items-center justify-center space-x-2 font-semibold transition ${
                         livreur.available
@@ -375,7 +365,7 @@ const LivreursList = () => {
                     </button>
 
                     <button
-                      onClick={() => handlePhoneContact(livreur.phone)}
+                      onClick={(e) => handlePhoneContact(e, livreur.phone)}
                       disabled={!livreur.available}
                       className={`w-full py-2.5 px-4 rounded-xl flex items-center justify-center space-x-2 font-semibold transition ${
                         livreur.available
@@ -388,7 +378,7 @@ const LivreursList = () => {
                     </button>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
