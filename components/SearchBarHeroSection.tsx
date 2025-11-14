@@ -80,7 +80,8 @@ export default function SearchBar() {
                 <button
                   key={category.id}
                   // NOUVEAU: Ajout de la ref
-                  ref={(el) => (categoryRefs.current[index] = el)}
+                ref={(el) => { categoryRefs.current[index] = el; }}
+
                   onClick={() => setSelectedCategory(category.id)}
                   className={`relative z-10 flex-1 flex items-center justify-center 
                   gap-2 px-3 sm:px-4 py-3 text-sm font-semibold rounded-lg 
