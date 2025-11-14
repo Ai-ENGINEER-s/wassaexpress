@@ -1,11 +1,10 @@
+// CHEMIN OBLIGATOIRE : app/livreurs/[id]/page.tsx
+
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
 // "params" est automatiquement passé à la page par Next.js
 export default function LivreurDetailPage({ params }: { params: { id: string } }) {
-  
-  // Plus tard, vous utiliserez params.id pour fetcher 
-  // les infos de ce livreur depuis votre API.
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -24,7 +23,7 @@ export default function LivreurDetailPage({ params }: { params: { id: string } }
         </h1>
         
         <p className="text-lg text-gray-700">
-          Affichage des détails pour le livreur ID :
+          Détails pour le livreur ID :
         </p>
         
         <div className="mt-4 p-4 bg-gray-100 rounded-xl inline-block">
