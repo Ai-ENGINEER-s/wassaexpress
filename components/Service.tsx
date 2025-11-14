@@ -38,9 +38,11 @@ const Service = () => {
       
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
-          <h2 className="text-5xl md:text-6xl font-black text-gray-900 mb-6 leading-tight">
-            Services WassaExpress
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-orange-600">Pour Vous</span>
+          <h2 className="text-5xl md:text-6xl font-black text-gray-600 mb-6 leading-tight">
+            Services <span className="text-[#004AAD]">Wassa</span>
+<span className="text-[#FF6600]">Express</span>
+
+            <span className="block text-gray-600 bg-clip-text bg-gradient-to-r from-orange-500 to-orange-600">Pour Vous</span>
           </h2>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
             Des solutions complètes et innovantes pour répondre à tous vos besoins avec excellence

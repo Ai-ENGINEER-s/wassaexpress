@@ -13,12 +13,8 @@ const heroImages = [
   },
 ];
 
-
-
 export default function HeroSectionSearch() {
   const [currentSlide, setCurrentSlide] = useState(0);
-
-
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -26,8 +22,6 @@ export default function HeroSectionSearch() {
     }, 5000);
     return () => clearInterval(timer);
   }, []);
-
-
 
   return (
     <section className="relative h-[85vh] min-h-[600px] max-h-[750px] overflow-hidden">
@@ -45,13 +39,13 @@ export default function HeroSectionSearch() {
             style={{ 
               backgroundImage: `url(${image.url})`,
               transform: index === currentSlide ? 'scale(1.08)' : 'scale(1)',
-              filter: 'brightness(0.75) contrast(1.05)'
+              filter: 'brightness(0.65) contrast(1.05)' // MODIFIÉ: légèrement plus sombre
             }}
           />
-          {/* Overlay gradient plus prononcé */}
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/60 via-slate-800/50 to-orange-900/55" />
+          {/* MODIFIÉ: Overlay neutre pour un meilleur contraste */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/20" />
           
-          {/* Effet de lumière dynamique */}
+          {/* Effet de lumière dynamique (conservé) */}
           <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white/5" />
         </div>
       ))}
@@ -65,10 +59,11 @@ export default function HeroSectionSearch() {
           <span className="text-sm font-medium text-white">Plateforme N°1 au Mali </span>
         </div>
 
-        {/* Titre avec effet gradient */}
-        <h1 className="text-5xl sm:text-6xl md:text-7xl font-black mb-4 leading-tight animate-fade-in-down bg-gradient-to-r from-white via-white to-orange-200 bg-clip-text text-transparent">
+        {/* MODIFIÉ: Titre en blanc pur pour la lisibilité */}
+        <h1 className="text-5xl sm:text-6xl md:text-7xl font-black mb-4 leading-tight animate-fade-in-down text-white">
           Trouvez tout ce dont
           <br />
+          {/* Le dégradé orange est conservé, mais ressort mieux sur fond neutre */}
           <span className="bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
             vous avez besoin
           </span>
@@ -80,7 +75,6 @@ export default function HeroSectionSearch() {
         </p>
 
    
-
       </div>
       
       {/* Indicateurs de Slide modernes */}

@@ -1,203 +1,193 @@
 'use client';
-import { useState, FormEvent, ChangeEvent } from 'react';
-import { MapPin, Phone, Mail, Send, CheckCircle2 } from 'lucide-react';
 
-interface FormData {
-  name: string;
-  email: string;
-  phone: string;
-  message: string;
-}
+import React from 'react';
+import {
+  Package,
+  FileCheck,
+  Stethoscope,
+  Home,
+  ArrowRight,
+  CheckCircle,
+} from 'lucide-react';
 
-export default function ContactPage() {
-  const [formData, setFormData] = useState<FormData>({
-    name: '',
-    email: '',
-    phone: '',
-    message: ''
-  });
-  const [submitted, setSubmitted] = useState<boolean>(false);
+const ServicesPage = () => {
+  const services = [
+    {
+      id: 'expedition',
+      icon: Package,
+      title: 'Expédition de Colis International',
+      description:
+        "Service premium d'expédition du Maroc vers le Mali et l'Afrique. Logistique complète, récupération sécurisée et suivi avancé.",
+      features: [
+        'Suivi en temps réel',
+        'Emballage sécurisé',
+        'Délais garantis',
+        'Assistance douanière',
+      ],
+      gradient: 'from-blue-600 to-cyan-500',
+    },
+    {
+      id: 'aevm',
+      icon: FileCheck,
+      title: 'Accompagnement AEVM',
+      description:
+        "Procédure simplifiée pour obtenir l’Autorisation Électronique de Voyage au Maroc (AEVM).",
+      features: [
+        'Processus simplifié',
+        'Suivi personnalisé',
+        'Taux de réussite élevé',
+        'Support multilingue',
+      ],
+      gradient: 'from-fuchsia-500 to-purple-500',
+    },
+    {
+      id: 'medical',
+      icon: Stethoscope,
+      title: 'Assistance Médicale',
+      description:
+        'Accompagnement complet pour vos soins au Maroc : hôpitaux partenaires, conseils, gestion des rendez-vous.',
+      features: [
+        'Hôpitaux partenaires certifiés',
+        'Traducteurs disponibles',
+        'Gestion de l’hébergement',
+        'Suivi post-traitement',
+      ],
+      gradient: 'from-emerald-500 to-green-500',
+    },
+    {
+      id: 'logement',
+      icon: Home,
+      title: 'Recherche de Logement',
+      description:
+        'Trouver facilement un logement adapté à vos besoins au Maroc : étudiants, professionnels, visiteurs.',
+      features: [
+        'Large sélection',
+        'Visites virtuelles',
+        'Négociation de prix',
+        'Assistance administrative',
+      ],
+      gradient: 'from-orange-500 to-red-500',
+    },
+  ];
 
-  const handleSubmit = (e: FormEvent<HTMLButtonElement>): void => {
-    e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
-  };
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleContactClick = (id: string) => {
+    window.location.href = `/contact?service=${id}`;
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      
-      {/* Hero Section - Avec Image de Fond */}
-      <div className="relative bg-slate-900 border-b border-gray-100 overflow-hidden">
-        {/* Image de fond */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ 
-            backgroundImage: "url('/images/contactlandingsection.jpg')",
-            filter: 'brightness(0.4)'
-          }}
-        />
-        
-        {/* Overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/60 to-slate-900/40" />
-        
-        {/* Contenu */}
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-4">
-            Contactez-nous
-          </h1>
-          <p className="text-lg text-gray-200 max-w-2xl mx-auto">
-            Une question sur nos services ? Nous sommes là pour vous aider.
-          </p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
 
-      {/* Content Section */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          
-          {/* Contact Info - Épuré */}
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-8">Informations</h2>
-              
-              <div className="space-y-6">
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <MapPin className="w-5 h-5 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-slate-900 mb-1">Adresse</p>
-                    <p className="text-slate-600 text-sm">Boulevard Mohammed V</p>
-                    <p className="text-slate-600 text-sm">Casablanca, Maroc</p>
-                  </div>
-                </div>
+      {/* --- HERO --- */}
+<section className="relative py-32 flex flex-col items-center justify-center text-center">
+  <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1547483238-2a73767f6c37')]
+ bg-cover bg-center opacity-20"></div>
+  <div className="absolute inset-0 backdrop-blur-sm"></div>
 
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Phone className="w-5 h-5 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-slate-900 mb-1">Téléphone</p>
-                    <p className="text-slate-600 text-sm">+212 663-833056²</p>
-                    <p className="text-slate-500 text-xs mt-1">Lun - Sam: 9h - 18h</p>
-                  </div>
-                </div>
+  <div className="relative z-10 max-w-3xl">
+    <div className="inline-flex items-center bg-black backdrop-blur-md px-5 py-2 rounded-full mb-6 border border-white/20 shadow-sm">
+      <CheckCircle size={18} className="text-white" />
+      <span className="ml-2 text-white font-medium">Nos Solutions</span>
+    </div>
 
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Mail className="w-5 h-5 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-slate-900 mb-1">Email</p>
-                    <p className="text-slate-600 text-sm">contact@wassaexpress.ma</p>
-                    <p className="text-slate-500 text-xs mt-1">Réponse sous 24h</p>
-                  </div>
-                </div>
+    <h1 className="text-5xl md:text-6xl font-bold text-gray-900 drop-shadow-xl">
+      Nos Services
+    </h1>
+
+    <p className="text-xl mt-4 text-gray-700">
+      Des solutions complètes pour simplifier vos démarches entre le Maroc et l’Afrique
+    </p>
+  </div>
+</section>
+
+
+      {/* --- SERVICES GRID --- */}
+      <section className="max-w-7xl mx-auto px-6 py-20 grid grid-cols-1 md:grid-cols-2 gap-10">
+
+        {services.map((service, index) => {
+          const Icon = service.icon;
+
+          return (
+            <div
+              key={service.id}
+              className="relative group p-8 bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:-translate-y-1"
+            >
+              {/* gradient circle */}
+              <div
+                className={`absolute -top-8 -right-10 w-40 h-40 bg-gradient-to-br ${service.gradient} opacity-10 blur-3xl rounded-full`}
+              />
+
+              {/* icon section */}
+              <div
+                className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${service.gradient} text-white shadow-md mb-6 transform group-hover:scale-110 transition-all`}
+              >
+                <Icon size={32} />
               </div>
+
+              {/* title */}
+              <h3 className="text-2xl font-semibold mb-4 text-gray-900">
+                {service.title}
+              </h3>
+
+              <p className="text-gray-600 leading-relaxed mb-6">
+                {service.description}
+              </p>
+
+              {/* features */}
+              <ul className="space-y-2 mb-8">
+                {service.features.map((feature, i) => (
+                  <li key={i} className="flex items-center gap-3">
+                    <CheckCircle className="text-green-500 w-5 h-5" />
+                    <span className="text-gray-700 text-sm">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              {/* CTA */}
+              <button
+                onClick={() => handleContactClick(service.id)}
+                className={`w-full bg-gradient-to-r ${service.gradient} text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all hover:shadow-lg`}
+              >
+                Demander ce service
+                <ArrowRight size={18} />
+              </button>
             </div>
+          );
+        })}
+      </section>
 
-            {/* Map */}
-            <div className="rounded-2xl overflow-hidden border border-gray-200">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d106276.6066733!2d-7.689155!3d33.5731104!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xda7cd4778aa113b%3A0xb06c1d84f310fd3!2sCasablanca!5e0!3m2!1sen!2sma!4v1234567890"
-                width="100%"
-                height="250"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-              ></iframe>
-            </div>
-          </div>
+      {/* --- FAQ --- */}
+      <section className="bg-gray-900 text-white py-20">
+        <div className="max-w-3xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-center mb-10">Questions fréquentes</h2>
 
-          {/* Contact Form - Simplifié */}
-          <div className="lg:col-span-2">
-            <div className="bg-white border border-gray-200 rounded-2xl p-8">
-                 <h2 className="text-4xl font-bold mb-2 bg-gradient-to-r from-gray-900 via-red-900 to-orange-900 bg-clip-text text-transparent">
-            Envoyez un message
-          </h2>
-
-              {submitted && (
-                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-green-600" />
-                  <span className="text-green-700 text-sm font-medium">Message envoyé avec succès</span>
-                </div>
-              )}
-
-              <div className="space-y-5">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Nom complet *
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-slate-900"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Email *
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-slate-900"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Téléphone
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-slate-900"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Message *
-                  </label>
-                  <textarea
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    rows={6}
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-slate-900 resize-none"
-                    required
-                  ></textarea>
-                </div>
-
-                <button
-                  onClick={handleSubmit}
-                  className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-orange-500/30 transition-all duration-300 flex items-center justify-center gap-2 group"
-                >
-                  <span>Envoyer</span>
-                  <Send className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </button>
-              </div>
-            </div>
+          <div className="space-y-6">
+            {[
+              {
+                q: 'Quels sont les délais de livraison pour les colis ?',
+                a: 'En général entre 5 et 15 jours ouvrables selon la destination.',
+              },
+              {
+                q: "Comment se déroule l'obtention de l'AEVM ?",
+                a: "Nous vous assistons pour la constitution du dossier, la demande et le suivi complet.",
+              },
+              {
+                q: 'Quels types de soins médicaux proposez-vous ?',
+                a: 'Nos partenaires couvrent chirurgie, dentaire, analyses, ophtalmologie, etc.',
+              },
+            ].map((faq, i) => (
+              <details
+                key={i}
+                className="bg-white/10 p-5 rounded-xl backdrop-blur-sm cursor-pointer transition-all"
+              >
+                <summary className="font-medium text-lg">{faq.q}</summary>
+                <p className="text-gray-300 mt-3">{faq.a}</p>
+              </details>
+            ))}
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
-}
+};
+
+export default ServicesPage;

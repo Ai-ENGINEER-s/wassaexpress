@@ -1,7 +1,7 @@
 'use client';
 
 import { Menu, X, MapPin, Phone } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -12,110 +12,122 @@ export default function WassaNavbar() {
 
   const navItems = [
     { name: 'Accueil', href: '/' },
-    { name: 'Services', href: '/services' },
+    { name: 'Services', href: '/service' },
     { name: 'Produits', href: '/produits' },
-    { name: 'Nous Contactez', href: '/contact' }
+    { name: 'Nous Contactez', href: '/contact' },
   ];
 
-  const isActive = (href: string) => pathname === href;
+  // Déterminer l'élément actif en fonction de la route
+  const activeItem = navItems.find(item => item.href === pathname)?.name || 'Accueil';
 
   return (
     <>
-      {/* Top bar - Info contact */}
-      {/* MODIFIÉ: Fond blanc, texte foncé, bordure grise */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-2">
-          <div className="flex items-center justify-between text-sm">
-            {/* MODIFIÉ: Texte foncé */}
-            <div className="flex items-center gap-6 text-slate-600">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-orange-500" />
-                <span>Casablanca, Maroc</span>
+      {/* Top Bar */}
+      <div className="bg-gradient-to-r from-slate-50 to-gray-50 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 py-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-8">
+              <div className="flex items-center ml-36 gap-2 group cursor-pointer">
+                <div className="p-1.5 bg-orange-50 rounded-full group-hover:bg-orange-100 transition-colors">
+                  <MapPin className="w-3.5 h-3.5 text-orange-500" />
+                </div>
+                <span className="text-sm text-slate-600 font-medium">Casablanca, Maroc</span>
               </div>
-              <div className="hidden sm:flex items-center gap-2">
-                <Phone className="w-4 h-4 text-orange-500" />
-                <span>+212 663-833056</span>
-              </div>
+              <Link href="tel:+212663833056" className="hidden sm:flex items-center gap-2 group cursor-pointer">
+                <div className="p-1.5 bg-orange-50 rounded-full group-hover:bg-orange-100 transition-colors">
+                  <Phone className="w-3.5 h-3.5 text-orange-500" />
+                </div>
+                <span className="text-sm text-slate-600 font-medium">+212 663-833056</span>
+              </Link>
             </div>
-            {/* MODIFIÉ: Texte foncé */}
-            <div className="text-slate-600 hidden md:block">
-              Votre partenaire logistique de confiance
+
+            <div className="hidden lg:flex items-center gap-2 ml-auto mr-8">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-sm text-slate-600 font-medium">Votre partenaire logistique de confiance</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main navbar */}
-      {/* MODIFIÉ: Fond blanc, bordure grise */}
-      <header className="bg-[#f7f9f6] backdrop-blur-md shadow-lg sticky top-0 z-50 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Main Navbar */}
+      <header className="bg-[#F7F9F6] backdrop-blur-xl shadow-sm sticky top-0 z-50 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between h-20">
-            
-            {/* Logo */}
-            <Link href="/" className="flex-shrink-0 group">
-              {/* Le fond du logo était déjà blanc, il s'intègre maintenant parfaitement */}
-              <div className="relative w-80 h-22   transition-all duration-300 group-hover:scale-105 group-hover:shadow-orange-500/20">
-                <Image 
-                  src="/images/logo/logou.png" 
-                  alt="WassaExpress - Votre partenaire logistique" 
+            <Link href="/" className="flex-shrink-0 cursor-pointer group">
+              <div className="relative w-72 h-16 transition-all duration-300 group-hover:scale-105">
+                <Image
+                  src="/images/logo/logo.png"
+                  alt="WassaExpress - Votre partenaire logistique"
                   fill
-                  className="object-contain p-1"
+                  className="object-contain"
                   priority
                 />
               </div>
             </Link>
-            
-            {/* Navigation Desktop */}
-            <nav className="hidden lg:flex items-center space-x-2">
-              {navItems.map((item) => (
-                <Link 
-                  key={item.name} 
-                  href={item.href}
-                  // MODIFIÉ: Couleurs du texte (foncé par défaut, orange si actif)
-                  className={`relative px-5 py-2 font-medium transition-all duration-300 group ${
-                    isActive(item.href) 
-                      ? 'text-orange-600' // Actif: texte orange
-                      : 'text-slate-600 hover:text-slate-900' // Défaut: texte foncé
-                  }`}
-                >
-                  <span className="relative z-10">{item.name}</span>
-                  {/* Le fond orange au survol est conservé, il contraste bien */}
-                  <span className={`absolute inset-0 bg-gradient-to-r from-orange-500/0 via-orange-500/10 to-orange-500/0 rounded-lg transition-opacity duration-300 ${
-                    isActive(item.href) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                  }`}></span>
-                  {/* Le soulignement orange est conservé */}
-                  <span className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-orange-400 to-orange-600 transition-all duration-300 ${
-                    isActive(item.href) ? 'w-3/4' : 'w-0 group-hover:w-3/4'
-                  }`}></span>
-                </Link>
-              ))}
+
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center gap-1">
+              {navItems.map(item => {
+                const isActive = activeItem === item.name;
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className="relative px-5 py-2.5 group"
+                  >
+                    <span
+                      className={`relative z-10 text-sm font-semibold transition-colors duration-300 ${
+                        isActive ? 'text-orange-600' : 'text-slate-700 group-hover:text-orange-600'
+                      }`}
+                    >
+                      {item.name}
+                    </span>
+
+                    {isActive && (
+                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-orange-500 rounded-full" />
+                    )}
+
+                    <div
+                      className={`absolute inset-0 rounded-xl transition-all duration-300 ${
+                        isActive ? 'bg-white shadow-sm' : 'bg-white/60 opacity-0 group-hover:opacity-100'
+                      }`}
+                    />
+                  </Link>
+                );
+              })}
             </nav>
 
-            {/* CTA Buttons Desktop */}
+            {/* CTA Buttons */}
             <div className="hidden lg:flex items-center gap-3">
-              <Link 
-                href="/connexion"
-                // MODIFIÉ: Texte foncé, bordure grise
-                className="px-6 py-2.5 text-slate-600 hover:text-orange-600 font-medium transition-colors duration-300 border border-slate-300 hover:border-orange-500/50 rounded-lg"
+              <Link
+                href="/login"
+                className="px-5 py-2.5 text-sm font-semibold text-slate-700 hover:text-orange-600 transition-all duration-300 hover:bg-white rounded-xl shadow-sm hover:shadow-md"
               >
                 Connexion
               </Link>
-              {/* Ce bouton est déjà orange, pas de modif nécessaire */}
-              <Link 
-                href="/publier"
-                className="relative px-6 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-lg overflow-hidden group shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300"
+
+              <Link
+                href="/annonce"
+                className="relative px-6 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-bold rounded-xl overflow-hidden group shadow-lg shadow-orange-500/25 hover:scale-105 transition-transform"
               >
-                <span className="relative z-10">Publier une annonce</span>
-                <span className="absolute inset-0 bg-gradient-to-r from-orange-600 to-orange-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                <span className="relative z-10 flex items-center gap-2">
+                  Publier une annonce
+                  <svg
+                    className="w-4 h-4 group-hover:translate-x-1 transition-transform"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </span>
               </Link>
             </div>
 
             {/* Mobile Menu Button */}
-            {/* MODIFIÉ: Icône foncée, fond clair au survol */}
-            <button 
+            <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2.5 text-slate-700 hover:text-orange-600 hover:bg-gray-100/50 rounded-lg transition-all duration-300"
-              aria-label="Toggle menu"
+              className="lg:hidden p-2.5 text-slate-700 hover:bg-gray-50 rounded-xl transition-all duration-300"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -124,42 +136,39 @@ export default function WassaNavbar() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          // MODIFIÉ: Fond blanc, bordure grise
-          <div className="lg:hidden bg-white/98 backdrop-blur-md border-t border-gray-200 shadow-2xl">
-            <div className="max-w-7xl mx-auto px-4 py-6 space-y-1">
+          <div className="lg:hidden bg-white border-t border-gray-100">
+            <div className="max-w-7xl mx-auto px-6 py-6 space-y-1">
               <nav className="space-y-1">
-                {navItems.map((item) => (
-                  <Link 
-                    key={item.name} 
-                    href={item.href}
-                    // MODIFIÉ: Texte foncé, fond clair (actif ou survol)
-                    className={`block px-4 py-3 rounded-lg font-medium transition-all duration-300 ${
-                      isActive(item.href)
-                        ? 'text-orange-600 bg-gray-100/70' // Actif
-                        : 'text-slate-600 hover:text-orange-600 hover:bg-gray-100/50' // Défaut
-                    }`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
+                {navItems.map(item => {
+                  const isActive = activeItem === item.name;
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={`w-full block px-4 py-3.5 rounded-xl font-semibold text-sm transition-all duration-300 ${
+                        isActive ? 'text-orange-600 bg-orange-50' : 'text-slate-700 hover:bg-orange-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        {item.name}
+                        {isActive && <div className="w-2 h-2 bg-orange-500 rounded-full" />}
+                      </div>
+                    </Link>
+                  );
+                })}
               </nav>
-              
-              {/* MODIFIÉ: Bordure grise */}
-              <div className="pt-4 space-y-2 border-t border-gray-200">
-                <Link 
-                  href="/connexion"
-                  // MODIFIÉ: Texte foncé, bordure grise, fond clair au survol
-                  className="block px-4 py-3 text-center text-slate-600 hover:text-orange-600 hover:bg-gray-100/50 rounded-lg font-medium transition-all duration-300 border border-slate-300"
-                  onClick={() => setMobileMenuOpen(false)}
+
+              <div className="pt-4 space-y-2 border-t border-gray-100 mt-4">
+                <Link
+                  href="/login"
+                  className="w-full block px-4 py-3.5 text-center text-sm font-semibold text-slate-700 hover:bg-orange-50 rounded-xl transition-all duration-300"
                 >
                   Connexion
                 </Link>
-                {/* Bouton orange déjà OK */}
-                <Link 
-                  href="/publier"
-                  className="block px-4 py-3 text-center bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-lg shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-300"
-                  onClick={() => setMobileMenuOpen(false)}
+
+                <Link
+                  href="/annonce"
+                  className="w-full block px-4 py-3.5 text-center bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-orange-500/25"
                 >
                   Publier une annonce
                 </Link>
