@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useMemo } from "react";
-import { ArrowLeft, Check, MapPin, Star, Filter, Search, MessageCircle, Phone } from "lucide-react";
+import { ArrowLeft, Check, MapPin, Star, Filter, Search, MessageCircle, Phone, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 const LivreursList = () => {
   const router = useRouter();
@@ -15,12 +16,12 @@ const LivreursList = () => {
   const allLivreurs = [
     {
       id: 1,
-      name: "Livreur Express Pro",
+      name: "Ahmed El Mansouri",
+      profileImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
       location: "Casablanca",
       locationCountry: "Maroc",
       destination: "Paris",
       destinationCountry: "France",
-      avatar: "👨‍💼",
       rating: 4.9,
       completedDeliveries: 156,
       responseTime: "< 1h",
@@ -29,16 +30,17 @@ const LivreursList = () => {
       specialties: ["Documents", "Colis fragiles"],
       phone: "+212612345678",
       whatsapp: "+212612345678",
-      available: true
+      available: true,
+      description: "Livreur professionnel avec plus de 5 ans d'expérience"
     },
     {
       id: 2,
-      name: "Mohammed Transport",
+      name: "Mohammed Benali",
+      profileImage: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop",
       location: "Casablanca",
       locationCountry: "Maroc",
       destination: "Paris",
       destinationCountry: "France",
-      avatar: "🚚",
       rating: 4.7,
       completedDeliveries: 89,
       responseTime: "< 2h",
@@ -47,16 +49,17 @@ const LivreursList = () => {
       specialties: ["Vêtements", "Alimentaire"],
       phone: "+212623456789",
       whatsapp: "+212623456789",
-      available: true
+      available: true,
+      description: "Spécialiste des envois alimentaires et textiles"
     },
     {
       id: 3,
-      name: "Fast Delivery Service",
+      name: "Fatima Zahra",
+      profileImage: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop",
       location: "Rabat",
       locationCountry: "Maroc",
       destination: "Paris",
       destinationCountry: "France",
-      avatar: "✈️",
       rating: 4.8,
       completedDeliveries: 203,
       responseTime: "< 30min",
@@ -65,16 +68,17 @@ const LivreursList = () => {
       specialties: ["Express", "Volumineux"],
       phone: "+212634567890",
       whatsapp: "+212634567890",
-      available: false
+      available: false,
+      description: "Service express garanti, livraison rapide et sécurisée"
     },
     {
       id: 4,
-      name: "Dakar Livraison Rapide",
+      name: "Mamadou Diallo",
+      profileImage: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop",
       location: "Dakar",
       locationCountry: "Sénégal",
       destination: "Montréal",
       destinationCountry: "Canada",
-      avatar: "📦",
       rating: 4.6,
       completedDeliveries: 67,
       responseTime: "< 3h",
@@ -83,16 +87,17 @@ const LivreursList = () => {
       specialties: ["Documents", "Électronique"],
       phone: "+221771234567",
       whatsapp: "+221771234567",
-      available: true
+      available: true,
+      description: "Expert en envois internationaux vers le Canada"
     },
     {
       id: 5,
-      name: "Express Euro Transport",
+      name: "Jean-Pierre Dubois",
+      profileImage: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop",
       location: "Paris",
       locationCountry: "France",
       destination: "Casablanca",
       destinationCountry: "Maroc",
-      avatar: "🚛",
       rating: 4.9,
       completedDeliveries: 234,
       responseTime: "< 1h",
@@ -101,7 +106,8 @@ const LivreursList = () => {
       specialties: ["Tous types", "Volumineux"],
       phone: "+33612345678",
       whatsapp: "+33612345678",
-      available: true
+      available: true,
+      description: "Transporteur fiable pour tous types de colis"
     }
   ];
 
@@ -285,30 +291,52 @@ const LivreursList = () => {
               >
                 <div className="bg-gradient-to-br from-blue-50 to-orange-50 p-6 relative group-hover:from-blue-100 group-hover:to-orange-100 transition-colors">
                   {livreur.verified && (
-                    <div className="absolute top-4 right-4 w-7 h-7 rounded-full bg-green-100 flex items-center justify-center">
-                      <Check className="w-4 h-4 text-green-600" />
+                    <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-lg">
+                      <Check className="w-5 h-5 text-white" />
                     </div>
                   )}
 
                   {!livreur.available && (
                     <div className="absolute top-4 left-4">
-                      <span className="bg-gray-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                      <span className="bg-gray-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
                         Occupé
                       </span>
                     </div>
                   )}
 
+                  {livreur.available && (
+                    <div className="absolute top-4 left-4">
+                      <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow animate-pulse">
+                        Disponible
+                      </span>
+                    </div>
+                  )}
+
                   <div className="text-center">
-                    <div className="text-5xl mb-3">{livreur.avatar}</div>
-                    <h3 className="font-bold text-lg text-gray-900 mb-1">
+                    <div className="relative w-24 h-24 mx-auto mb-4">
+                      <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                        <Image
+                          src={livreur.profileImage}
+                          alt={livreur.name}
+                          width={96}
+                          height={96}
+                          className="w-full h-full object-cover"
+                          unoptimized
+                        />
+                      </div>
+                    </div>
+                    <h3 className="font-bold text-xl text-gray-900 mb-2">
                       {livreur.name}
                     </h3>
-                    <div className="flex items-center justify-center space-x-1 text-sm text-gray-600">
+                    <div className="flex items-center justify-center space-x-1 text-sm text-gray-600 mb-2">
                       <MapPin className="w-4 h-4 text-orange-500" />
-                      <span>{livreur.location}</span>
-                      <span>→</span>
-                      <span>{livreur.destination}</span>
+                      <span className="font-medium">{livreur.location}</span>
+                      <span className="text-gray-400">→</span>
+                      <span className="font-medium">{livreur.destination}</span>
                     </div>
+                    <p className="text-xs text-gray-500 italic">
+                      {livreur.description}
+                    </p>
                   </div>
                 </div>
 
@@ -332,12 +360,12 @@ const LivreursList = () => {
                   </div>
 
                   <div className="mb-4">
-                    <p className="text-xs text-gray-500 mb-2">Spécialités:</p>
+                    <p className="text-xs text-gray-500 mb-2 font-medium">Spécialités:</p>
                     <div className="flex flex-wrap gap-2">
                       {livreur.specialties.map((specialty, idx) => (
                         <span
                           key={idx}
-                          className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full"
+                          className="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-medium"
                         >
                           {specialty}
                         </span>
@@ -345,35 +373,35 @@ const LivreursList = () => {
                     </div>
                   </div>
 
-                  <div className="bg-orange-50 border border-orange-100 rounded-xl p-3 mb-4 text-center">
-                    <p className="text-xs text-gray-600 mb-1">Tarif</p>
-                    <p className="text-2xl font-bold text-orange-500">{livreur.price}</p>
+                  <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-3 mb-4 text-center">
+                    <p className="text-xs text-gray-600 mb-1 font-medium">Tarif</p>
+                    <p className="text-2xl font-bold text-orange-600">{livreur.price}</p>
                   </div>
 
                   <div className="space-y-2">
                     <button
                       onClick={(e) => handleWhatsAppContact(e, livreur.whatsapp, livreur.name)}
                       disabled={!livreur.available}
-                      className={`w-full py-2.5 px-4 rounded-xl flex items-center justify-center space-x-2 font-semibold transition ${
+                      className={`w-full py-3 px-4 rounded-xl flex items-center justify-center space-x-2 font-semibold transition-all ${
                         livreur.available
-                          ? 'bg-green-500 hover:bg-green-600 text-white'
+                          ? 'bg-green-500 hover:bg-green-600 text-white shadow-md hover:shadow-lg'
                           : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       }`}
                     >
-                      <MessageCircle className="w-4 h-4" />
+                      <MessageCircle className="w-5 h-5" />
                       <span>WhatsApp</span>
                     </button>
 
                     <button
                       onClick={(e) => handlePhoneContact(e, livreur.phone)}
                       disabled={!livreur.available}
-                      className={`w-full py-2.5 px-4 rounded-xl flex items-center justify-center space-x-2 font-semibold transition ${
+                      className={`w-full py-3 px-4 rounded-xl flex items-center justify-center space-x-2 font-semibold transition-all ${
                         livreur.available
-                          ? 'bg-[#104C9E] hover:bg-[#0d3d7f] text-white'
+                          ? 'bg-[#104C9E] hover:bg-[#0d3d7f] text-white shadow-md hover:shadow-lg'
                           : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       }`}
                     >
-                      <Phone className="w-4 h-4" />
+                      <Phone className="w-5 h-5" />
                       <span>Appeler</span>
                     </button>
                   </div>

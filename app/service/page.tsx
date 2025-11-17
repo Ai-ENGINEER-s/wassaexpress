@@ -15,7 +15,7 @@ const ServicesPage = () => {
     {
       id: 'expedition',
       icon: Package,
-      title: 'Expédition de Colis International',
+      title: 'Achat et Expédition de Colis',
       description:
         "Service premium d'expédition du Maroc vers le Mali et l'Afrique. Logistique complète, récupération sécurisée et suivi avancé.",
       features: [
@@ -75,30 +75,35 @@ const ServicesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+    <div className="min-h-screen ">
 
       {/* --- HERO --- */}
-<section className="relative py-32 flex flex-col items-center justify-center text-center">
-  <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1547483238-2a73767f6c37')]
- bg-cover bg-center opacity-20"></div>
-  <div className="absolute inset-0 backdrop-blur-sm"></div>
 
-  <div className="relative z-10 max-w-3xl">
-    <div className="inline-flex items-center bg-black backdrop-blur-md px-5 py-2 rounded-full mb-6 border border-white/20 shadow-sm">
-      <CheckCircle size={18} className="text-white" />
-      <span className="ml-2 text-white font-medium">Nos Solutions</span>
-    </div>
 
-    <h1 className="text-5xl md:text-6xl font-bold text-gray-900 drop-shadow-xl">
-      Nos Services
-    </h1>
 
-    <p className="text-xl mt-4 text-gray-700">
-      Des solutions complètes pour simplifier vos démarches entre le Maroc et l’Afrique
-    </p>
-  </div>
-</section>
-
+     <div className="relative bg-slate-900 border-b border-gray-100 overflow-hidden">
+        {/* Image de fond */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ 
+            backgroundImage: "url('/images/contactlandingsection.jpg')",
+            filter: 'brightness(0.4)'
+          }}
+        />
+        
+        {/* Overlay gradient */}
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/60 to-slate-900/40" />
+        
+        {/* Contenu */}
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-4">
+            Nos Services
+          </h1>
+          <p className="text-lg text-gray-200 max-w-2xl mx-auto">
+            Des solutions complètes pour simplifier vos démarches entre le Maroc et l’Afrique
+          </p>
+        </div>
+      </div>
 
       {/* --- SERVICES GRID --- */}
       <section className="max-w-7xl mx-auto px-6 py-20 grid grid-cols-1 md:grid-cols-2 gap-10">

@@ -10,7 +10,7 @@ import Service from '@/components/Service';
 import HowItWorks from '@/components/HowItWorks';
 import Stats from '@/components/Stats';
 import SearchBarHeroSection from '@/components/SearchBarHeroSection';
-import FooterE from '@/components/FooterE';
+import FooterE from '@/components/Footer';
 
 const WassaExpressHomepage = () => {
 
