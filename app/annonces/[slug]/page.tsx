@@ -1,4 +1,4 @@
-import AnnonceDetail from '@/components/AnnonceDetail';
+import AnnonceDetail from '@/components/AnnonceDetail/AnnonceDetailPage';
 
 export default async function AnnonceDetailPage({ 
   params 
