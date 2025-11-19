@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { AnnonceHeader } from '@/components/AnnonceDetail/AnnonceHeader';
 import { AnnonceMainCard } from '@/components/AnnonceDetail/AnnonceMainCard';
 import { AnnonceSidebar } from '@/components/AnnonceDetail/AnnonceSidebar';
@@ -8,10 +9,19 @@ import { LivreursSection } from '@/components/AnnonceDetail/LivreursSection';
 import { InterestFormModal } from '@/components/AnnonceDetail/InterestFormModal';
 import { CTASection } from '@/components/AnnonceDetail/CTASection';
 
+// URL DE VOTRE API LOCALE
+const WP_API_URL = 'http://wassaexpressbackend.local/wp-json';
 
 const AnnonceDetail = ({ slug }: { slug: string }) => {
+  // États des données
+  const [annonce, setAnnonce] = useState<any>(null);
+  const [livreurs, setLivreurs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // États de l'interface
   const [isFavorite, setIsFavorite] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [formSubmitted, setFormSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     nom: '',
     prenom: '',
@@ -26,197 +36,192 @@ const AnnonceDetail = ({ slug }: { slug: string }) => {
     livreurId: '',
     message: '',
   });
-  const [formSubmitted, setFormSubmitted] = useState(false);
 
-  // TODO: Remplacer par fetch API avec slug
-  const annonce = {
-    id: 1,
-    slug: slug,
-    title: 'Dakar/Paris le 11 Novembre 2025',
-    location: "Dakar/M'bour",
-    destination: 'Paris',
-    date: 'novembre 11, 2025',
-    departureTime: '14:00',
-    price: '10€/Kg',
-    type: 'GP',
-    verified: true,
-    departureCountryCode: 'SN',
-    arrivalCountryCode: 'FR',
-    description:
-      'Transport de colis entre Dakar et Paris. Espace disponible pour environ 30kg. Livraison rapide et sécurisée. Documents nécessaires pour le passage en douane.',
-    deliveryTime: '2-3 jours',
-    availableWeight: '30 Kg',
-    conditions: [
-      'Pas de produits interdits',
-      'Emballage sécurisé requis',
-      'Paiement avant expédition',
-    ],
-    publishedBy: 'Wassa Express',
-    contact: {
-      platformName: 'Wassa Express',
-      phone: '+212 663-833056',
-      whatsapp: '+212663833056',
-      email: 'contact@wassaexpress.com',
-    },
-    traveler: {
-      name: 'Fatou Body Senegal',
-      phone: '+221776543210',
-      verified: true,
-    },
-    stats: {
-      completedDeliveries: 45,
-      rating: 4.8,
-      responseTime: '< 2h',
-    },
-  };
+  // 1. CHARGEMENT ET FILTRAGE DES DONNÉES
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // A. Récupérer l'annonce par SLUG
+        const resAnnonce = await fetch(`${WP_API_URL}/wp/v2/annonce?slug=${slug}&_embed`);
+        const dataAnnonce = await resAnnonce.json();
 
-  // TODO: Remplacer par fetch API filtrés par destination
-  const livreurs = [
-    {
-      id: 1,
-      name: 'Ahmed El Mansouri',
-      profileImage:
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop',
-      destination: 'Paris',
-      rating: 4.9,
-      completedDeliveries: 156,
-      responseTime: '< 1h',
-      transportFee: '5€',
-      verified: true,
-      specialties: ['Documents', 'Colis fragiles'],
-      phone: '+212612345678',
-      whatsapp: '+212612345678',
-      available: true,
-      arrivalCountryCode: 'FR',
-      description: "Livreur professionnel avec plus de 5 ans d'expérience",
-    },
-    {
-      id: 2,
-      name: 'Mohammed Benali',
-      profileImage:
-        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop',
-      destination: 'Paris',
-      rating: 4.7,
-      completedDeliveries: 89,
-      responseTime: '< 2h',
-      transportFee: '5€',
-      verified: true,
-      specialties: ['Vêtements', 'Alimentaire'],
-      phone: '+212623456789',
-      whatsapp: '+212623456789',
-      available: true,
-      arrivalCountryCode: 'FR',
-      description: 'Spécialiste des envois alimentaires et textiles',
-    },
-    {
-      id: 3,
-      name: 'Fatima Zahra',
-      profileImage:
-        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
-      destination: 'Paris',
-      rating: 4.8,
-      completedDeliveries: 203,
-      responseTime: '< 30min',
-      transportFee: '10€',
-      verified: true,
-      specialties: ['Express', 'Volumineux'],
-      phone: '+212634567890',
-      whatsapp: '+212634567890',
-      available: false,
-      arrivalCountryCode: 'FR',
-      description: 'Service express garanti, livraison rapide et sécurisée',
-    },
-  ];
+        if (dataAnnonce.length === 0) {
+           setLoading(false);
+           return;
+        }
 
+        const item = dataAnnonce[0];
+        const acf = item.acf || {};
+
+        // Mapping de l'annonce (Attention aux minuscules des champs ACF !)
+        const formattedAnnonce = {
+          id: item.id,
+          slug: item.slug,
+          title: item.title.rendered,
+          location: acf.location,
+          destination: acf.destination,
+          date: acf.date,
+          departureTime: acf.departuretime,
+          price: acf.price,
+          type: acf.type || 'GP',
+          verified: acf.verified === true,
+          // Codes pays importants pour le filtrage
+          departureCountryCode: acf.departurecountrycode,
+          arrivalCountryCode: acf.arrivalcountrycode, 
+          
+          description: item.content.rendered.replace(/<[^>]+>/g, ''),
+          deliveryTime: acf.deliverytime,
+          availableWeight: acf.availableweight,
+          conditions: acf.conditions ? acf.conditions.split('\n').filter((c: string) => c.trim() !== '') : [],
+          publishedBy: acf.contact_platformname || 'Wassa Express',
+          contact: {
+            platformName: acf.contact_platformname || 'Wassa Express',
+            phone: acf.contact_phone,
+            whatsapp: acf.contact_whatsapp,
+            email: acf.contact_email,
+          },
+          traveler: {
+            name: acf.traveler_name,
+            phone: acf.traveler_phone,
+            verified: acf.traveler_verified === true,
+          },
+          stats: {
+            completedDeliveries: acf.stats_completeddeliveries,
+            rating: acf.stats_rating,
+            responseTime: acf.stats_responsetime,
+          },
+        };
+        setAnnonce(formattedAnnonce);
+
+        // B. Récupérer TOUS les Livreurs
+        // On en demande 100 pour être sûr d'avoir tout le monde avant de filtrer
+        const resLivreurs = await fetch(`${WP_API_URL}/wp/v2/livreur?_embed&per_page=100`);
+        const dataLivreurs = await resLivreurs.json();
+
+        // Transformation brute des livreurs
+        const allLivreurs = dataLivreurs.map((l: any) => ({
+            id: l.id,
+            name: l.title.rendered,
+            profileImage: l._embedded?.['wp:featuredmedia']?.[0]?.source_url || 'https://via.placeholder.com/150',
+            destination: l.acf.destination,
+            rating: l.acf.rating,
+            completedDeliveries: l.acf.completeddeliveries,
+            responseTime: l.acf.responsetime,
+            transportFee: l.acf.transportfee,
+            verified: l.acf.verified === true,
+            specialties: l.acf.specialties ? l.acf.specialties.split('\n') : [],
+            phone: l.acf.phone,
+            whatsapp: l.acf.whatsapp,
+            available: l.acf.available === true,
+            // Pour un livreur, "arrivalcountrycode" correspond à sa zone d'action (Pays)
+            arrivalCountryCode: l.acf.arrivalcountrycode, 
+            description: l.content.rendered.replace(/<[^>]+>/g, ''),
+        }));
+
+        // C. FILTRAGE INTELLIGENT (LA PARTIE IMPORTANTE)
+        // On ne garde que les livreurs qui sont dans le pays d'arrivée de l'annonce
+        const filteredLivreurs = allLivreurs.filter((livreur: any) => {
+            
+            // Si l'annonce n'a pas de code pays d'arrivée, on affiche tout le monde (sécurité)
+            if (!formattedAnnonce.arrivalCountryCode) return true;
+
+            // Si le livreur n'a pas de code pays, on le cache (ou on l'affiche, au choix)
+            if (!livreur.arrivalCountryCode) return false;
+
+            // Comparaison (ex: 'FR' === 'FR')
+            return livreur.arrivalCountryCode.toLowerCase().trim() === formattedAnnonce.arrivalCountryCode.toLowerCase().trim();
+        });
+
+        setLivreurs(filteredLivreurs);
+
+      } catch (error) {
+        console.error("Erreur chargement:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (slug) fetchData();
+  }, [slug]);
+
+  // 2. GESTIONNAIRES D'ACTIONS
   const handleShare = () => {
+    if (!annonce) return;
     if (navigator.share) {
       navigator.share({
         title: annonce.title,
-        text: `Découvrez cette annonce sur ${annonce.contact.platformName}: ${annonce.title}`,
+        text: `Annonce sur ${annonce.contact.platformName}: ${annonce.title}`,
         url: window.location.href,
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      alert('Lien copié dans le presse-papier !');
+      alert('Lien copié !');
     }
   };
 
   const handleWhatsAppContact = () => {
-    const message = encodeURIComponent(
-      `Bonjour, je suis intéressé(e) par l'annonce: ${annonce.title}. Pouvez-vous me mettre en relation avec le voyageur ?`
-    );
-    window.open(
-      `https://wa.me/${annonce.contact.whatsapp}?text=${message}`,
-      '_blank'
-    );
+    if (!annonce) return;
+    const message = encodeURIComponent(`Bonjour, je suis intéressé(e) par l'annonce: ${annonce.title}.`);
+    window.open(`https://wa.me/${annonce.contact.whatsapp}?text=${message}`, '_blank');
   };
 
-  const handlePhoneContact = () => {
-    window.location.href = `tel:${annonce.contact.phone}`;
-  };
-
-  const handleEmailContact = () => {
-    window.location.href = `mailto:${annonce.contact.email}?subject=Demande de contact pour: ${annonce.title}`;
-  };
+  const handlePhoneContact = () => annonce && window.open(`tel:${annonce.contact.phone}`);
+  const handleEmailContact = () => annonce && window.open(`mailto:${annonce.contact.email}`);
 
   const handleWhatsAppContactLivreur = (phone: string, name: string) => {
-    const message = encodeURIComponent(
-      `Bonjour ${name}, je souhaite envoyer un colis suite à l'annonce: ${annonce.title}`
-    );
+    const message = encodeURIComponent(`Bonjour ${name}, je souhaite envoyer un colis suite à l'annonce: ${annonce.title}`);
     window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
   };
 
-  const handlePhoneContactLivreur = (phone: string) => {
-    window.location.href = `tel:${phone}`;
-  };
+  const handlePhoneContactLivreur = (phone: string) => window.open(`tel:${phone}`);
 
-  const handleFormChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
-
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value,
-    });
+    setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  // 3. ENVOI DU FORMULAIRE VERS L'API
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // TODO: Envoyer les données à votre API
-    console.log('Commande reçue:', formData);
+    const payload = {
+        annonce_id: annonce.id,
+        ...formData
+    };
 
-    // Simulation d'envoi réussi
-    setFormSubmitted(true);
+    try {
+        const res = await fetch(`${WP_API_URL}/wassa/v1/demande`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
 
-    // Réinitialiser le formulaire après 3 secondes
-    setTimeout(() => {
-      setShowForm(false);
-      setFormSubmitted(false);
-      setFormData({
-        nom: '',
-        prenom: '',
-        email: '',
-        telephone: '',
-        whatsapp: '',
-        adresseDepart: '',
-        adresseLivraison: '',
-        poidsEstime: '',
-        descriptionColis: '',
-        avecLivreur: false,
-        livreurId: '',
-        message: '',
-      });
-    }, 3000);
+        if (res.ok) {
+            setFormSubmitted(true);
+            setTimeout(() => {
+                setShowForm(false);
+                setFormSubmitted(false);
+                setFormData({
+                    nom: '', prenom: '', email: '', telephone: '', whatsapp: '',
+                    adresseDepart: '', adresseLivraison: '', poidsEstime: '',
+                    descriptionColis: '', avecLivreur: false, livreurId: '', message: '',
+                });
+            }, 3000);
+        } else {
+            alert("Erreur lors de l'envoi.");
+        }
+    } catch (error) {
+        console.error("Erreur technique:", error);
+    }
   };
+
+  // 4. RENDU CONDITIONNEL
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-500">Chargement des détails...</div>;
+  if (!annonce) return <div className="min-h-screen flex items-center justify-center">Annonce introuvable</div>;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* HEADER */}
       <AnnonceHeader
         isFavorite={isFavorite}
         onToggleFavorite={() => setIsFavorite(!isFavorite)}
@@ -243,7 +248,7 @@ const AnnonceDetail = ({ slug }: { slug: string }) => {
           </div>
         </div>
 
-        {/* SECTION LIVREURS */}
+        {/* SECTION LIVREURS (Filtrée automatiquement par pays d'arrivée) */}
         <LivreursSection
           livreurs={livreurs}
           destination={annonce.destination}

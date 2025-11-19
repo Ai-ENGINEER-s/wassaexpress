@@ -46,16 +46,9 @@ export default function HeroSectionSearch() {
       {/* Contenu principal */}
       <div className="relative h-full flex flex-col justify-center items-center max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-20">
         
-        {/* Badge animé */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.8 }}
-          className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6"
-        >
-          <Sparkles className="w-5 h-5 text-orange-400" />
-          <span className="text-sm font-medium text-white">Plateforme N°1 au Mali</span>
-        </motion.div>
+     
+
+      
 
         {/* Titre */}
         <motion.h1

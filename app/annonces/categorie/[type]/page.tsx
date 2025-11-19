@@ -1,178 +1,92 @@
 'use client';
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ArrowLeft, Check, Clock, MapPin, Package, Filter, Search, Heart, Mail } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
+
+// VOTRE URL LOCALE
+const WP_API_URL = 'http://wassaexpressbackend.local/wp-json/wp/v2';
 
 export default function AnnoncesPage() {
   const router = useRouter();
   const params = useParams();
-  const categoryType = params.type as string;
+  const categoryType = params.type as string; // ex: 'gp' ou 'transport-terrestre'
 
+  // États
+  const [annonces, setAnnonces] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // États de filtres
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("all");
   const [selectedDestination, setSelectedDestination] = useState("all");
 
-  // TOUTES LES ANNONCES
-  const allAnnonces = [
-    // === GP ===
-    {
-      id: 1,
-      slug: "dakar-paris-11-novembre-2025",
-      title: "Dakar/Paris le 11 Novembre 2025",
-      location: "Dakar/M'bour",
-      locationCountry: "Sénégal",
-      destination: "Paris",
-      destinationCountry: "France",
-      date: "novembre 11, 2025",
-      price: "10€/Kg",
-      type: "gp",
-      verified: true,
-    },
-    {
-      id: 2,
-      slug: "3m-business-gp-senegal-canada",
-      title: "3M BUSINESS GP SENEGAL-CANADA",
-      location: "Dakar",
-      locationCountry: "Sénégal",
-      destination: "Montréal",
-      destinationCountry: "Canada",
-      date: "novembre 10, 2025",
-      price: "15$/Kg",
-      type: "gp",
-      verified: true,
-    },
-    {
-      id: 3,
-      slug: "paris-dakar-vol-direct",
-      title: "Paris/Dakar Vol Direct",
-      location: "Paris",
-      locationCountry: "France",
-      destination: "Dakar",
-      destinationCountry: "Sénégal",
-      date: "novembre 25, 2025",
-      price: "11€/Kg",
-      type: "gp",
-      verified: true,
-    },
-    {
-      id: 4,
-      slug: "casablanca-new-york-gp",
-      title: "Casablanca/New York GP",
-      location: "Casablanca",
-      locationCountry: "Maroc",
-      destination: "New York",
-      destinationCountry: "États-Unis",
-      date: "décembre 1, 2025",
-      price: "18$/Kg",
-      type: "gp",
-      verified: true,
-    },
-    {
-      id: 5,
-      slug: "abidjan-paris-colis-express",
-      title: "Abidjan/Paris Colis Express",
-      location: "Abidjan",
-      locationCountry: "Côte d'Ivoire",
-      destination: "Paris",
-      destinationCountry: "France",
-      date: "novembre 18, 2025",
-      price: "12€/Kg",
-      type: "gp",
-      verified: false,
-    },
-    {
-      id: 6,
-      slug: "lagos-london-gp-service",
-      title: "Lagos/London GP Service",
-      location: "Lagos",
-      locationCountry: "Nigéria",
-      destination: "London",
-      destinationCountry: "Royaume-Uni",
-      date: "novembre 22, 2025",
-      price: "14£/Kg",
-      type: "gp",
-      verified: true,
-    },
-    
-    // === TRANSPORT TERRESTRE ===
-    {
-      id: 7,
-      slug: "casablanca-paris-transport-terrestre",
-      title: "Casablanca/Paris Transport Express",
-      location: "Casablanca",
-      locationCountry: "Maroc",
-      destination: "Paris",
-      destinationCountry: "France",
-      date: "novembre 15, 2025",
-      price: "6€/Kg",
-      type: "transport-terrestre",
-      verified: true,
-    },
-    {
-      id: 8,
-      slug: "rabat-madrid-camion",
-      title: "Rabat/Madrid par Camion",
-      location: "Rabat",
-      locationCountry: "Maroc",
-      destination: "Madrid",
-      destinationCountry: "Espagne",
-      date: "novembre 20, 2025",
-      price: "5€/Kg",
-      type: "transport-terrestre",
-      verified: true,
-    },
-    {
-      id: 9,
-      slug: "tanger-barcelone-camion",
-      title: "Tanger/Barcelone Transport Routier",
-      location: "Tanger",
-      locationCountry: "Maroc",
-      destination: "Barcelone",
-      destinationCountry: "Espagne",
-      date: "novembre 28, 2025",
-      price: "5€/Kg",
-      type: "transport-terrestre",
-      verified: true,
-    },
-    {
-      id: 10,
-      slug: "marrakech-marseille-terrestre",
-      title: "Marrakech/Marseille Camion",
-      location: "Marrakech",
-      locationCountry: "Maroc",
-      destination: "Marseille",
-      destinationCountry: "France",
-      date: "décembre 5, 2025",
-      price: "7€/Kg",
-      type: "transport-terrestre",
-      verified: false,
-    },
-    {
-      id: 11,
-      slug: "agadir-paris-transport-routier",
-      title: "Agadir/Paris Transport Routier",
-      location: "Agadir",
-      locationCountry: "Maroc",
-      destination: "Paris",
-      destinationCountry: "France",
-      date: "novembre 30, 2025",
-      price: "6.5€/Kg",
-      type: "transport-terrestre",
-      verified: true,
-    },
-  ];
+  // 1. CHARGEMENT DES DONNÉES API
+  useEffect(() => {
+    const fetchAnnonces = async () => {
+      try {
+        // On récupère un grand nombre d'annonces pour pouvoir filtrer côté client
+        const res = await fetch(`${WP_API_URL}/annonce?per_page=100&_embed`);
+        const data = await res.json();
 
-  // Filtrer par catégorie
+        const formattedData = data.map((item: any) => {
+          const acf = item.acf || {};
+          
+          // Normalisation du type pour faciliter le filtrage
+          // ex: "Transport Terrestre" devient "transport-terrestre"
+          let normalizedType = 'gp';
+          const acfType = acf.type ? acf.type.toLowerCase() : '';
+
+          if (acfType.includes('terrestre') || acfType.includes('routier')) {
+            normalizedType = 'transport-terrestre';
+          } else if (acfType.includes('livreur')) {
+            normalizedType = 'livreur';
+          } else {
+            normalizedType = 'gp';
+          }
+
+          return {
+            id: item.id,
+            slug: item.slug,
+            title: item.title.rendered,
+            location: acf.location || 'Non spécifié',
+            // On utilise le code pays pour le filtre (ex: SN, FR)
+            locationCountry: acf.departurecountrycode || 'Non spécifié', 
+            destination: acf.destination || 'Non spécifié',
+            // On utilise le code pays pour le filtre
+            destinationCountry: acf.arrivalcountrycode || 'Non spécifié',
+            date: acf.date || 'Date à définir',
+            price: acf.price || 'Prix non défini',
+            type: normalizedType, // Notre type normalisé
+            verified: acf.verified === true,
+          };
+        });
+
+        setAnnonces(formattedData);
+      } catch (error) {
+        console.error("Erreur chargement:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnnonces();
+  }, []);
+
+  // 2. LOGIQUE DE FILTRAGE (Similaire à avant, mais sur les données API)
+
+  // Filtrer par catégorie (GP ou Transport Terrestre)
   const filteredByCategory = useMemo(() => {
-    return allAnnonces.filter(annonce => annonce.type === categoryType);
-  }, [categoryType]);
+    return annonces.filter(annonce => annonce.type === categoryType);
+  }, [categoryType, annonces]);
 
-  // Pays et destinations
+  // Pays et destinations dynamiques basés sur les résultats
   const countries = useMemo(() => {
     const countriesSet = new Set<string>();
     filteredByCategory.forEach(annonce => {
-      countriesSet.add(annonce.locationCountry);
+      if (annonce.locationCountry && annonce.locationCountry !== 'Non spécifié') {
+        countriesSet.add(annonce.locationCountry);
+      }
     });
     return Array.from(countriesSet).sort();
   }, [filteredByCategory]);
@@ -180,18 +94,21 @@ export default function AnnoncesPage() {
   const destinations = useMemo(() => {
     const destinationsSet = new Set<string>();
     filteredByCategory.forEach(annonce => {
-      destinationsSet.add(annonce.destinationCountry);
+      if (annonce.destinationCountry && annonce.destinationCountry !== 'Non spécifié') {
+        destinationsSet.add(annonce.destinationCountry);
+      }
     });
     return Array.from(destinationsSet).sort();
   }, [filteredByCategory]);
 
-  // Filtrage final
+  // Filtrage final (Recherche + Selects)
   const filteredAnnonces = useMemo(() => {
     return filteredByCategory.filter(annonce => {
+      const searchLower = searchQuery.toLowerCase();
       const matchesSearch = 
-        annonce.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        annonce.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        annonce.destination.toLowerCase().includes(searchQuery.toLowerCase());
+        (annonce.title && annonce.title.toLowerCase().includes(searchLower)) ||
+        (annonce.location && annonce.location.toLowerCase().includes(searchLower)) ||
+        (annonce.destination && annonce.destination.toLowerCase().includes(searchLower));
       
       const matchesCountry = 
         selectedCountry === "all" || annonce.locationCountry === selectedCountry;
@@ -203,6 +120,7 @@ export default function AnnoncesPage() {
     });
   }, [filteredByCategory, searchQuery, selectedCountry, selectedDestination]);
 
+  // Titre de la page
   const getCategoryTitle = () => {
     switch (categoryType) {
       case 'gp':
@@ -217,6 +135,12 @@ export default function AnnoncesPage() {
   const handleAnnonceClick = (slug: string) => {
     router.push(`/annonces/${slug}`);
   };
+
+  // --- RENDU ---
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center text-gray-500">Chargement des annonces...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -266,10 +190,10 @@ export default function AnnoncesPage() {
               </div>
             </div>
 
-            {/* PAYS */}
+            {/* PAYS DE DÉPART */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Pays de départ
+                Pays de départ (Code)
               </label>
               <select
                 value={selectedCountry}
@@ -286,7 +210,7 @@ export default function AnnoncesPage() {
             {/* DESTINATION */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Destination
+                Pays de destination (Code)
               </label>
               <select
                 value={selectedDestination}
@@ -316,7 +240,7 @@ export default function AnnoncesPage() {
           )}
         </div>
 
-        {/* LISTE */}
+        {/* LISTE DES RÉSULTATS */}
         {filteredAnnonces.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
             <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -335,9 +259,9 @@ export default function AnnoncesPage() {
                 onClick={() => handleAnnonceClick(annonce.slug)}
                 className="bg-white rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group cursor-pointer"
               >
-                {/* HEADER */}
+                {/* HEADER CARTE */}
                 <div className="h-40 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative border-b border-gray-200">
-                  <span className="absolute top-4 left-4 px-3 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-700">
+                  <span className="absolute top-4 left-4 px-3 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-700 uppercase">
                     {categoryType === 'gp' ? 'GP' : 'TERRESTRE'}
                   </span>
 
@@ -350,7 +274,7 @@ export default function AnnoncesPage() {
                   <Package className="w-16 h-16 text-gray-300 group-hover:text-orange-400 transition" />
                 </div>
 
-                {/* CONTENT */}
+                {/* CONTENU CARTE */}
                 <div className="p-6">
                   <h3 className="font-semibold text-lg text-gray-900 mb-3 line-clamp-2 group-hover:text-orange-500 transition">
                     {annonce.title}
@@ -375,7 +299,7 @@ export default function AnnoncesPage() {
                     </div>
                   </div>
 
-                  {/* FOOTER */}
+                  {/* FOOTER CARTE */}
                   <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                     <span className="text-2xl font-extrabold text-orange-500">
                       {annonce.price}
@@ -383,17 +307,13 @@ export default function AnnoncesPage() {
 
                     <div className="flex space-x-2">
                       <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                        }}
+                        onClick={(e) => { e.stopPropagation(); }}
                         className="p-2 rounded-xl hover:bg-gray-100 transition"
                       >
                         <Heart className="w-5 h-5 text-gray-400 hover:text-red-500 transition" />
                       </button>
                       <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                        }}
+                        onClick={(e) => { e.stopPropagation(); }}
                         className="p-2 rounded-xl hover:bg-gray-100 transition"
                       >
                         <Mail className="w-5 h-5 text-gray-400 hover:text-blue-500 transition" />
