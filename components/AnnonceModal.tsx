@@ -1,28 +1,19 @@
 'use client';
 
-import {
-  X,
-  Package,
-  User,
-  Mic,
-  Square,
-  Trash2,
-  FileText,
-  AudioWaveform
-} from 'lucide-react';
+import { X, Package, User, Mic, Square, Trash2, FileText, AudioWaveform, ArrowRight } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 
 interface AnnonceModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSuccess: () => void; // Callback pour déclencher le toast dans le parent
+  isOpen?: boolean;
+  onClose?: () => void;
+  onSuccess: () => void;
 }
 
 export default function AnnonceModal({ isOpen, onClose, onSuccess }: AnnonceModalProps) {
   const [loading, setLoading] = useState(false);
   const [submissionMode, setSubmissionMode] = useState<'form' | 'voice'>('form');
+  const [step, setStep] = useState<'choice' | 'form'>('choice');
 
-  // --- ÉTATS POUR L'AUDIO ---
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -31,31 +22,16 @@ export default function AnnonceModal({ isOpen, onClose, onSuccess }: AnnonceModa
   const timerRef = useRef<any>(null);
 
   const [formData, setFormData] = useState({
-    nom: '',
-    prenom: '',
-    telephone: '',
-    email: '',
-    typeService: 'GP',
-    depart: '',
-    destination: '',
-    dateDepart: '',
-    poids: '',
-    description: ''
+    nom: '', prenom: '', telephone: '', email: '',
+    typeService: 'GP', depart: '', destination: '',
+    dateDepart: '', poids: '', description: ''
   });
 
-  // Gestion du scroll du body quand le modal est ouvert
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
+    document.body.style.overflow = isOpen ? 'hidden' : 'unset';
+    return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
 
-  // Nettoyage de l'audio
   useEffect(() => {
     return () => {
       if (audioUrl) URL.revokeObjectURL(audioUrl);
@@ -68,45 +44,31 @@ export default function AnnonceModal({ isOpen, onClose, onSuccess }: AnnonceModa
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // --- FONCTIONS AUDIO ---
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
-      
       const chunks: BlobPart[] = [];
-      mediaRecorderRef.current.ondataavailable = (e) => {
-        if (e.data.size > 0) chunks.push(e.data);
-      };
-
+      mediaRecorderRef.current.ondataavailable = e => { if(e.data.size > 0) chunks.push(e.data); };
       mediaRecorderRef.current.onstop = () => {
         const blob = new Blob(chunks, { type: 'audio/webm' });
-        const url = URL.createObjectURL(blob);
         setAudioBlob(blob);
-        setAudioUrl(url);
+        setAudioUrl(URL.createObjectURL(blob));
         stream.getTracks().forEach(track => track.stop());
       };
-
       mediaRecorderRef.current.start();
       setIsRecording(true);
-      
       setRecordingDuration(0);
-      timerRef.current = setInterval(() => {
-        setRecordingDuration(prev => prev + 1);
-      }, 1000);
-
-    } catch (err) {
-      console.error("Erreur d'accès au micro", err);
-      alert("Impossible d'accéder au micro. Vérifiez vos permissions.");
+      timerRef.current = setInterval(() => setRecordingDuration(prev => prev + 1), 1000);
+    } catch {
+      alert("Impossible d'accéder au micro.");
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      if (timerRef.current) clearInterval(timerRef.current);
-    }
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
+    clearInterval(timerRef.current);
   };
 
   const deleteRecording = () => {
@@ -115,300 +77,187 @@ export default function AnnonceModal({ isOpen, onClose, onSuccess }: AnnonceModa
     setRecordingDuration(0);
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  const formatTime = (s: number) => `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
+
+  const handleModeSelect = (mode: 'form' | 'voice') => {
+    setSubmissionMode(mode);
+    setStep('form');
   };
 
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
+  const handleBackToChoice = () => {
+    setStep('choice');
+    deleteRecording();
+    setFormData({nom:'',prenom:'',telephone:'',email:'',typeService:'GP',depart:'',destination:'',dateDepart:'',poids:'',description:''});
+  };
 
-    if (submissionMode === 'voice' && !audioBlob) {
-        alert("Veuillez enregistrer un message vocal avant d'envoyer.");
-        return;
-    }
-
+  const handleSubmit = () => {
+    if(submissionMode === 'voice' && !audioBlob) return alert("Enregistrez un message vocal");
     setLoading(true);
-
-    // Simulation d'envoi API
     setTimeout(() => {
-      console.log('--- SOUMISSION ---');
-      console.log('Mode:', submissionMode);
-      
+      console.log('Soumission', submissionMode, formData);
       setLoading(false);
-      
-      // Reset total
-      setFormData({
-        nom: '', prenom: '', telephone: '', email: '',
-        typeService: 'GP', depart: '', destination: '',
-        dateDepart: '', poids: '', description: ''
-      });
+      setFormData({nom:'',prenom:'',telephone:'',email:'',typeService:'GP',depart:'',destination:'',dateDepart:'',poids:'',description:''});
       deleteRecording();
       setSubmissionMode('form');
-
-      // Déclenche le succès dans le parent
+      setStep('choice');
       onSuccess();
     }, 1500);
   };
 
-  if (!isOpen) return null;
+  if(!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto flex flex-col animate-slide-in">
 
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-fade-in flex flex-col">
-        
-        {/* Header du Modal */}
-        <div className="bg-orange-600 text-white p-6 rounded-t-2xl shrink-0">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold">Publier une annonce</h2>
-            <button onClick={onClose}>
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-
-          {/* Onglets */}
-          <div className="bg-orange-800/50 p-1.5 rounded-xl flex shadow-inner">
-            <button
-              onClick={() => {setSubmissionMode('form'); deleteRecording();}}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all duration-200 ${
-                submissionMode === 'form' 
-                  ? 'bg-white text-orange-600 shadow-md'
-                  : 'text-orange-100 hover:bg-orange-700/60'
-              }`}
-            >
-              <FileText className="w-4 h-4" />
-              Remplir Formulaire
-            </button>
-            <button
-              onClick={() => setSubmissionMode('voice')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all duration-200 ${
-                submissionMode === 'voice' 
-                  ? 'bg-white text-orange-600 shadow-md'
-                  : 'text-orange-100 hover:bg-orange-700/60'
-              }`}
-            >
-              <Mic className="w-4 h-4" />
-              Note Vocale
-            </button>
-          </div>
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-white">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">Publier une annonce</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <X className="w-6 h-6"/>
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto">
-          
-          {/* Informations personnelles */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-              <User className="w-5 h-5 text-orange-500" />
-              Vos Coordonnées
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {['nom', 'prenom', 'telephone', 'email'].map((field, i) => (
-                <div key={i}>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    {field.charAt(0).toUpperCase() + field.slice(1)} *
-                  </label>
-                  <input
-                    type={field === 'email' ? 'email' : field === 'telephone' ? 'tel' : 'text'}
-                    name={field}
-                    value={(formData as any)[field]}
-                    onChange={handleInputChange}
-                    required
-                    placeholder={field === 'telephone' ? "Pour qu'on vous rappelle" : ''}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none transition-all"
-                  />
+        {/* Écran de choix */}
+        {step === 'choice' ? (
+          <div className="p-8 space-y-6 flex flex-col justify-center">
+            <p className="text-center text-gray-600 font-medium text-lg">Choisissez comment publier votre annonce</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Option Formulaire */}
+              <button
+                onClick={() => handleModeSelect('form')}
+                className="group p-6 rounded-2xl border-2 border-gray-200 hover:border-orange-400 hover:bg-orange-50 transition-all duration-300 text-left space-y-4 hover:shadow-lg transform hover:-translate-y-1"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-orange-100 rounded-lg group-hover:bg-orange-200 transition">
+                    <FileText className="w-6 h-6 text-orange-600"/>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-800">Formulaire</h3>
                 </div>
-              ))}
+                <p className="text-sm text-gray-600">Remplissez un formulaire détaillé avec tous les champs nécessaires</p>
+                <div className="flex items-center gap-2 text-orange-600 font-semibold group-hover:gap-3 transition-all">
+                  Continuer <ArrowRight className="w-4 h-4"/>
+                </div>
+              </button>
+
+              {/* Option Note vocale */}
+              <button
+                onClick={() => handleModeSelect('voice')}
+                className="group p-6 rounded-2xl border-2 border-gray-200 hover:border-orange-400 hover:bg-orange-50 transition-all duration-300 text-left space-y-4 hover:shadow-lg transform hover:-translate-y-1"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-orange-100 rounded-lg group-hover:bg-orange-200 transition">
+                    <Mic className="w-6 h-6 text-orange-600"/>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-800">Note vocale</h3>
+                </div>
+                <p className="text-sm text-gray-600">Enregistrez rapidement votre message par la voix</p>
+                <div className="flex items-center gap-2 text-orange-600 font-semibold group-hover:gap-3 transition-all">
+                  Continuer <ArrowRight className="w-4 h-4"/>
+                </div>
+              </button>
             </div>
           </div>
-
-          <div className="h-px bg-gray-100 my-6"></div>
-
-          {/* CONTENU DYNAMIQUE */}
-          {submissionMode === 'form' && (
-            <div className="animate-fade-in space-y-5">
-              <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                <Package className="w-5 h-5 text-orange-500" />
-                Détails de l'annonce
+        ) : (
+          /* Formulaire ou enregistrement audio */
+          <div className="p-6 space-y-6 flex-1 overflow-y-auto">
+            {/* Coordonnées */}
+            <div className="p-4 bg-gray-50 rounded-xl shadow-inner space-y-4">
+              <h3 className="flex items-center gap-2 font-semibold text-gray-700">
+                <User className="w-5 h-5 text-orange-500"/> Vos coordonnées
               </h3>
-
-              <select
-                name="typeService"
-                value={formData.typeService}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-              >
-                <option value="GP">Par voie aérienne</option>
-                <option value="LIVREUR">Par voie terrestre</option>
-              </select>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {['depart', 'destination'].map((field, i) => (
-                  <div key={i}>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      {field === 'depart' ? 'Ville de départ *' : 'Ville de destination *'}
-                    </label>
-                    <input
-                      type="text"
-                      name={field}
-                      value={(formData as any)[field]}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-                    />
-                  </div>
+                {['nom','prenom','telephone','email'].map((f,i) => (
+                  <input
+                    key={i}
+                    type={f==='email'?'email':f==='telephone'?'tel':'text'}
+                    name={f}
+                    value={(formData as any)[f]}
+                    onChange={handleInputChange}
+                    placeholder={f.charAt(0).toUpperCase()+f.slice(1)}
+                    required
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-400 outline-none"
+                  />
                 ))}
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Date de départ *
-                  </label>
-                  <input
-                    type="date"
-                    name="dateDepart"
-                    value={formData.dateDepart}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Poids estimé (kg)
-                  </label>
-                  <input
-                    type="number"
-                    name="poids"
-                    value={formData.poids}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Description
-                  </label>
-                <textarea
-                    name="description"
-                    rows={3}
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-orange-500 outline-none"
-                    placeholder="Détails supplémentaires..."
-                />
-              </div>
             </div>
-          )}
 
-          {submissionMode === 'voice' && (
-            <div className="animate-fade-in text-center py-4">
-                <h3 className="text-lg font-semibold text-slate-800 mb-2 flex items-center justify-center gap-2">
-                <AudioWaveform className="w-5 h-5 text-orange-500" />
-                Expliquez-nous tout de vive voix
-              </h3>
-              <p className="text-slate-500 text-sm mb-8 max-w-sm mx-auto">
-                Pas envie d'écrire ? Dites-nous simplement ce que vous voulez envoyer, d'où et vers où. On s'occupe du reste.
-              </p>
-
-              <div className="flex flex-col items-center justify-center gap-6 mb-4">
+            {/* Formulaire ou audio */}
+            {submissionMode === 'form' ? (
+              <div className="p-4 bg-gray-50 rounded-xl shadow-inner space-y-4">
+                <h3 className="flex items-center gap-2 font-semibold text-gray-700">
+                  <Package className="w-5 h-5 text-orange-500"/> Détails
+                </h3>
+                <select
+                  name="typeService"
+                  value={formData.typeService}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-400 outline-none"
+                >
+                  <option value="GP">Aérien</option>
+                  <option value="LIVREUR">Terrestre</option>
+                </select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {['depart','destination'].map((f,i)=>(
+                    <input
+                      key={i}
+                      type="text"
+                      name={f}
+                      value={(formData as any)[f]}
+                      onChange={handleInputChange}
+                      placeholder={f==='depart'?'Ville de départ':'Ville de destination'}
+                      required
+                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-400 outline-none"
+                    />
+                  ))}
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input type="date" name="dateDepart" value={formData.dateDepart} onChange={handleInputChange} required className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-400 outline-none" />
+                  <input type="number" name="poids" value={formData.poids} onChange={handleInputChange} placeholder="Poids (kg)" className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-400 outline-none" />
+                </div>
+                <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Description..." rows={3} className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-400 outline-none resize-none"/>
+              </div>
+            ) : (
+              <div className="p-6 bg-gray-50 rounded-xl shadow-inner text-center space-y-4">
+                <AudioWaveform className="w-6 h-6 mx-auto text-orange-500"/>
+                <p className="text-gray-600 font-medium">Enregistrez votre message vocal</p>
                 {!audioUrl ? (
-                    <>
-                          <button
-                            type="button"
-                            onClick={isRecording ? stopRecording : startRecording}
-                            className={`relative w-24 h-24 flex items-center justify-center rounded-full shadow-2xl transition-all transform hover:scale-105 ${
-                              isRecording 
-                                ? 'bg-red-500 ring-4 ring-red-200 animate-pulse' 
-                                : 'bg-gradient-to-br from-orange-500 to-red-600 ring-4 ring-orange-100'
-                            }`}
-                          >
-                            {isRecording ? (
-                                <Square className="w-8 h-8 text-white fill-current" />
-                            ) : (
-                                <Mic className="w-10 h-10 text-white" />
-                            )}
-                          </button>
-                          
-                          <div>
-                            <p className="text-sm font-bold text-slate-700 mb-1">
-                                {isRecording ? "Enregistrement..." : "Appuyez pour parler"}
-                            </p>
-                            {isRecording && (
-                                <p className="text-lg font-mono text-orange-600">{formatTime(recordingDuration)}</p>
-                            )}
-                          </div>
-                    </>
+                  <button onClick={isRecording?stopRecording:startRecording} className={`w-24 h-24 rounded-full flex items-center justify-center text-white shadow-lg transition transform hover:scale-105 mx-auto ${
+                    isRecording ? 'bg-red-500 animate-pulse' : 'bg-orange-500 hover:bg-orange-600'
+                  }`}>
+                    {isRecording ? <Square className="w-8 h-8"/> : <Mic className="w-10 h-10"/>}
+                  </button>
                 ) : (
-                    <div className="w-full bg-orange-50 p-4 rounded-2xl border border-orange-100 animate-fade-in">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-orange-600">
-                                <Mic className="w-5 h-5" />
-                            </div>
-                            <div className="flex-1">
-                                <audio controls src={audioUrl} className="w-full h-8" />
-                            </div>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={deleteRecording}
-                            className="text-sm text-red-500 font-medium hover:underline flex items-center justify-center gap-2 w-full py-2"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                            Supprimer et recommencer
-                        </button>
-                    </div>
+                  <div className="space-y-2">
+                    <audio controls src={audioUrl} className="w-full"/>
+                    <button onClick={deleteRecording} className="text-red-500 font-semibold flex items-center justify-center gap-2 w-full"> <Trash2 className="w-4 h-4"/> Supprimer</button>
+                  </div>
                 )}
+                {isRecording && <p className="font-mono text-orange-500 text-lg">{formatTime(recordingDuration)}</p>}
               </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-4 mt-6 pb-4">
+              <button onClick={handleBackToChoice} className="flex-1 px-4 py-3 rounded-xl border border-gray-300 hover:bg-gray-100 font-semibold">Retour</button>
+              <button onClick={handleSubmit} disabled={loading} className="flex-1 px-4 py-3 rounded-xl bg-orange-600 text-white font-bold hover:scale-[1.02] transition transform shadow-md disabled:bg-gray-300 disabled:text-gray-500">
+                {loading ? <span className="animate-spin border-2 border-white border-t-transparent rounded-full w-5 h-5 mx-auto"></span> : (submissionMode==='voice'?'Envoyer vocal':'Envoyer demande')}
+              </button>
             </div>
-          )}
 
-          {/* Buttons Action */}
-          <div className="flex gap-3 pt-8 mt-auto">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-6 py-3.5 border-2 border-gray-300 text-slate-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors"
-            >
-              Annuler
-            </button>
-
-            <button
-              type="submit"
-              disabled={loading || (submissionMode === 'voice' && !audioBlob) || (submissionMode === 'form' && (!formData.nom || !formData.prenom || !formData.telephone || !formData.email || !formData.depart || !formData.destination || !formData.dateDepart))}
-              className={`flex-1 px-6 py-3.5 font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 ${
-                loading || (submissionMode === 'voice' && !audioBlob) || (submissionMode === 'form' && (!formData.nom || !formData.prenom || !formData.telephone || !formData.email || !formData.depart || !formData.destination || !formData.dateDepart))
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-orange-600 text-white hover:scale-[1.02] hover:shadow-orange-200'
-              }`}
-            >
-              {loading ? (
-                <span className="animate-spin border-2 border-white border-t-transparent rounded-full w-5 h-5"></span>
-              ) : (
-                submissionMode === 'voice' ? 'Envoyer le vocal' : 'Envoyer ma demande'
-              )}
-            </button>
           </div>
-        </form>
+        )}
       </div>
 
-      {/* Styles CSS pour l'animation du modal */}
       <style jsx>{`
-        .animate-fade-in {
-          animation: fadeIn 0.3s ease-out forwards;
+        .animate-slide-in {
+          animation: slideIn 0.25s ease-out forwards;
         }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
+        @keyframes slideIn {
+          from { opacity:0; transform: translateY(20px); }
+          to { opacity:1; transform: translateY(0); }
         }
       `}</style>
     </div>
