@@ -102,7 +102,10 @@ const TopAnnonces = () => {
                   {annonce.verified && <CheckCircle className="absolute top-3 right-3 w-6 h-6 text-green-500 bg-white rounded-full shadow-sm" />}
                 </div>
                 <div className="p-6 flex-grow flex flex-col">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4 line-clamp-2">{annonce.title}</h3>
+                  <h3 
+  className="text-xl font-bold text-gray-900 mb-4 line-clamp-2"
+  dangerouslySetInnerHTML={{ __html: annonce.title }}
+/>
                   <div className="space-y-3 text-sm text-gray-700 mb-4">
                     <div className="flex items-center"><MapPin className="w-4 h-4 text-gray-500 mr-2" /><span>{annonce.location}</span></div>
                     <div className="flex items-center"><span className="text-gray-500 mr-2 w-24">Destination :</span><span className="font-semibold text-gray-900">{annonce.destination}</span></div>

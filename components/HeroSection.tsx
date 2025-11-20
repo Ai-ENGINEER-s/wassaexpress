@@ -80,7 +80,7 @@ export default function HeroSectionSearch() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.8 }}
           href="#services"
-          className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-full shadow-lg shadow-orange-500/50 transition-all"
+          className="inline-flex items-center gap-2 bg-orange-500  text-white font-semibold px-6 py-3 rounded-full shadow-lg  transition-all"
         >
           Explorer Nos Services
           <ArrowRight className="w-5 h-5" />
