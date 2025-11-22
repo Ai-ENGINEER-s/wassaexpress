@@ -45,7 +45,7 @@ const Service = () => {
       
       {/* Header */}
       <div className="max-w-7xl mx-auto px-4 text-center mb-20">
-        <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 leading-snug">
+        <h2 className="text-4xl md:text-5xl font-extrabold text-[#004BAD] leading-snug">
           Nos <span className="text-[#FF6600]">Services</span>
         </h2>
         <p className="text-gray-600 max-w-2xl mx-auto text-lg mt-4 leading-relaxed">

@@ -78,7 +78,7 @@ export default function HeroSectionSearch() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.8 }}
           href="#services"
-          className="relative inline-flex items-center gap-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-4 rounded-full shadow-xl shadow-orange-500/50 transition-all overflow-hidden"
+          className="relative inline-flex items-center gap-3 bg-[#004BAD] hover:bg-orange-600 text-white font-semibold px-8 py-4 rounded-full shadow-xl  transition-all overflow-hidden"
         >
           <span className="relative z-10">Explorer Nos Services</span>
           <motion.div

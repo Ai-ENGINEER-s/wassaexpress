@@ -1,183 +1,134 @@
 'use client';
 
-import { useState, useMemo } from "react";
-import { ArrowLeft, Check, MapPin, Star, Filter, Search, MessageCircle, Phone, User } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { ArrowLeft, Check, MapPin, Star, Filter, Search, MessageCircle, Phone, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import Flag from 'react-world-flags';
+
+// VOTRE URL API LOCALE
+const WP_API_URL = 'http://wassaexpressbackend.local/wp-json/wp/v2';
 
 const LivreursList = () => {
   const router = useRouter();
+  
+  // États
+  const [allLivreurs, setAllLivreurs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // États de filtres
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("all");
   const [selectedDestination, setSelectedDestination] = useState("all");
   const [availableOnly, setAvailableOnly] = useState(false);
 
-  const allLivreurs = [
-    {
-      id: 1,
-      name: "Ahmed El Mansouri",
-      profileImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
-      location: "Casablanca",
-      locationCountry: "Maroc",
-      destination: "Paris",
-      destinationCountry: "France",
-      rating: 4.9,
-      completedDeliveries: 156,
-      responseTime: "< 1h",
-      price: "8€/Kg",
-      verified: true,
-      specialties: ["Documents", "Colis fragiles"],
-      phone: "+212612345678",
-      whatsapp: "+212612345678",
-      available: true,
-      description: "Livreur professionnel avec plus de 5 ans d'expérience"
-    },
-    {
-      id: 2,
-      name: "Mohammed Benali",
-      profileImage: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop",
-      location: "Casablanca",
-      locationCountry: "Maroc",
-      destination: "Paris",
-      destinationCountry: "France",
-      rating: 4.7,
-      completedDeliveries: 89,
-      responseTime: "< 2h",
-      price: "9€/Kg",
-      verified: true,
-      specialties: ["Vêtements", "Alimentaire"],
-      phone: "+212623456789",
-      whatsapp: "+212623456789",
-      available: true,
-      description: "Spécialiste des envois alimentaires et textiles"
-    },
-    {
-      id: 3,
-      name: "Fatima Zahra",
-      profileImage: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop",
-      location: "Rabat",
-      locationCountry: "Maroc",
-      destination: "Paris",
-      destinationCountry: "France",
-      rating: 4.8,
-      completedDeliveries: 203,
-      responseTime: "< 30min",
-      price: "10€/Kg",
-      verified: true,
-      specialties: ["Express", "Volumineux"],
-      phone: "+212634567890",
-      whatsapp: "+212634567890",
-      available: false,
-      description: "Service express garanti, livraison rapide et sécurisée"
-    },
-    {
-      id: 4,
-      name: "Mamadou Diallo",
-      profileImage: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop",
-      location: "Dakar",
-      locationCountry: "Sénégal",
-      destination: "Montréal",
-      destinationCountry: "Canada",
-      rating: 4.6,
-      completedDeliveries: 67,
-      responseTime: "< 3h",
-      price: "12$/Kg",
-      verified: true,
-      specialties: ["Documents", "Électronique"],
-      phone: "+221771234567",
-      whatsapp: "+221771234567",
-      available: true,
-      description: "Expert en envois internationaux vers le Canada"
-    },
-    {
-      id: 5,
-      name: "Jean-Pierre Dubois",
-      profileImage: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop",
-      location: "Paris",
-      locationCountry: "France",
-      destination: "Casablanca",
-      destinationCountry: "Maroc",
-      rating: 4.9,
-      completedDeliveries: 234,
-      responseTime: "< 1h",
-      price: "7€/Kg",
-      verified: true,
-      specialties: ["Tous types", "Volumineux"],
-      phone: "+33612345678",
-      whatsapp: "+33612345678",
-      available: true,
-      description: "Transporteur fiable pour tous types de colis"
-    }
-  ];
+  // 1. CHARGEMENT DES DONNÉES
+  useEffect(() => {
+    const fetchLivreurs = async () => {
+      try {
+        const decodeHtml = (html: string) => {
+            const txt = document.createElement("textarea");
+            txt.innerHTML = html;
+            return txt.value;
+        };
 
+        const res = await fetch(`${WP_API_URL}/livreur?per_page=100&_embed`);
+        const data = await res.json();
+
+        const formattedData = data.map((item: any) => {
+          const acf = item.acf || {};
+          
+          return {
+            id: item.id,
+            name: decodeHtml(item.title.rendered),
+            profileImage: item._embedded?.['wp:featuredmedia']?.[0]?.source_url || 'https://via.placeholder.com/150',
+            
+            location: acf.location || "", 
+            countryCode: acf.arrivalcountrycode || "", 
+            
+            destination: acf.destination || "",
+            destinationCountry: acf.arrivalcountrycode || "",
+            
+            rating: acf.rating || 5.0,
+            completedDeliveries: acf.completeddeliveries || 0,
+            responseTime: acf.responsetime || "Rapide",
+            price: acf.transportfee || "Sur devis",
+            
+            verified: acf.verified === true,
+            specialties: acf.specialties ? acf.specialties.split('\n') : [],
+            phone: acf.phone,
+            whatsapp: acf.whatsapp,
+            available: acf.available === true,
+          };
+        });
+
+        setAllLivreurs(formattedData);
+      } catch (error) {
+        console.error("Erreur chargement livreurs:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLivreurs();
+  }, []);
+
+  // 2. LOGIQUE DE FILTRAGE
   const countries = useMemo(() => {
     const countriesSet = new Set<string>();
     allLivreurs.forEach(livreur => {
-      countriesSet.add(livreur.locationCountry);
+      if (livreur.locationCountry) countriesSet.add(livreur.locationCountry);
     });
     return Array.from(countriesSet).sort();
-  }, []);
-
-  const destinations = useMemo(() => {
-    const destinationsSet = new Set<string>();
-    allLivreurs.forEach(livreur => {
-      destinationsSet.add(livreur.destinationCountry);
-    });
-    return Array.from(destinationsSet).sort();
-  }, []);
+  }, [allLivreurs]);
 
   const filteredLivreurs = useMemo(() => {
     return allLivreurs.filter(livreur => {
+      const searchLower = searchQuery.toLowerCase();
       const matchesSearch = 
-        livreur.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        livreur.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        livreur.destination.toLowerCase().includes(searchQuery.toLowerCase());
+        (livreur.name && livreur.name.toLowerCase().includes(searchLower)) ||
+        (livreur.location && livreur.location.toLowerCase().includes(searchLower));
       
-      const matchesCountry = 
-        selectedCountry === "all" || livreur.locationCountry === selectedCountry;
-      
-      const matchesDestination = 
-        selectedDestination === "all" || livreur.destinationCountry === selectedDestination;
-
       const matchesAvailable = !availableOnly || livreur.available;
 
-      return matchesSearch && matchesCountry && matchesDestination && matchesAvailable;
+      return matchesSearch && matchesAvailable;
     });
-  }, [searchQuery, selectedCountry, selectedDestination, availableOnly]);
+  }, [allLivreurs, searchQuery, availableOnly]);
 
+  // 3. HANDLERS
   const handleWhatsAppContact = (e: React.MouseEvent, phone: string, name: string) => {
     e.preventDefault();
     e.stopPropagation();
-    const message = encodeURIComponent(`Bonjour ${name}, je souhaite envoyer un colis`);
+    if (!phone) return alert("Numéro WhatsApp non disponible");
+    const message = encodeURIComponent(`Bonjour ${name}, je souhaite envoyer un colis via Wassa Express.`);
     window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
   };
 
   const handlePhoneContact = (e: React.MouseEvent, phone: string) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!phone) return alert("Numéro de téléphone non disponible");
     window.location.href = `tel:${phone}`;
   };
 
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-500">Chargement...</div>;
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <div className="min-h-screen bg-[#F9FAFB]">
+      {/* HEADER */}
+      <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <button 
-            onClick={() => router.back()}
-            className="flex items-center space-x-2 text-gray-600 hover:text-[#104C9E] transition mb-4"
-          >
+          <button onClick={() => router.back()} className="flex items-center space-x-2 text-gray-500 hover:text-black transition mb-4">
             <ArrowLeft className="w-5 h-5" />
             <span className="font-medium">Retour</span>
           </button>
 
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-[#104C9E]">
-                Livreurs Professionnels
-              </h1>
-              <p className="text-gray-500 mt-1">
-                {filteredLivreurs.length} livreur{filteredLivreurs.length > 1 ? 's' : ''} disponible{filteredLivreurs.length > 1 ? 's' : ''}
+              <h1 className="text-3xl font-bold text-gray-900">Livreurs</h1>
+              <p className="text-gray-500 text-sm mt-1">
+                {filteredLivreurs.length} professionnels disponibles
               </p>
             </div>
           </div>
@@ -185,227 +136,140 @@ const LivreursList = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
-          <div className="flex items-center space-x-2 mb-4">
-            <Filter className="w-5 h-5 text-[#104C9E]" />
-            <h2 className="text-lg font-semibold text-gray-900">Filtres</h2>
+        {/* FILTRES */}
+        <div className="bg-white rounded-xl border border-gray-200 p-4 mb-8 flex flex-col md:flex-row gap-4 items-center">
+          <div className="relative flex-grow w-full">
+             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+             <input
+               type="text"
+               placeholder="Rechercher un nom, une ville..."
+               value={searchQuery}
+               onChange={(e) => setSearchQuery(e.target.value)}
+               className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/5"
+             />
           </div>
-
-          <div className="grid md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Rechercher
-              </label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Nom, ville..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#104C9E] focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Pays
-              </label>
-              <select
-                value={selectedCountry}
-                onChange={(e) => setSelectedCountry(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#104C9E] focus:border-transparent"
-              >
-                <option value="all">Tous les pays</option>
-                {countries.map(country => (
-                  <option key={country} value={country}>{country}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Destination
-              </label>
-              <select
-                value={selectedDestination}
-                onChange={(e) => setSelectedDestination(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#104C9E] focus:border-transparent"
-              >
-                <option value="all">Toutes les destinations</option>
-                {destinations.map(dest => (
-                  <option key={dest} value={dest}>{dest}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Disponibilité
-              </label>
-              <label className="flex items-center space-x-2 cursor-pointer bg-gray-50 px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-100 transition">
-                <input
-                  type="checkbox"
-                  checked={availableOnly}
-                  onChange={(e) => setAvailableOnly(e.target.checked)}
-                  className="w-4 h-4 text-[#104C9E] rounded focus:ring-[#104C9E]"
-                />
-                <span className="text-sm text-gray-700">Disponibles uniquement</span>
-              </label>
-            </div>
-          </div>
-
-          {(searchQuery || selectedCountry !== "all" || selectedDestination !== "all" || availableOnly) && (
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                setSelectedCountry("all");
-                setSelectedDestination("all");
-                setAvailableOnly(false);
-              }}
-              className="mt-4 text-orange-500 hover:text-orange-600 font-medium text-sm"
-            >
-              Réinitialiser les filtres
-            </button>
-          )}
+          
+          <label className="flex items-center space-x-2 cursor-pointer whitespace-nowrap">
+             <input type="checkbox" checked={availableOnly} onChange={(e) => setAvailableOnly(e.target.checked)} className="rounded border-gray-300 text-black focus:ring-0" />
+             <span className="text-sm text-gray-600">Disponibles</span>
+          </label>
         </div>
 
+        {/* GRILLE DES LIVREURS */}
         {filteredLivreurs.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
-            <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              Aucun livreur trouvé
-            </h3>
-            <p className="text-gray-500">
-              Essayez de modifier vos filtres de recherche
-            </p>
-          </div>
+          <div className="text-center py-20 text-gray-400">Aucun livreur trouvé.</div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredLivreurs.map((livreur) => (
               <Link
                 key={livreur.id}
                 href={`/livreurs/${livreur.id}`}
-                className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer group"
+                className="bg-white rounded-2xl border border-gray-100 hover:border-gray-300 hover:shadow-lg transition-all duration-300 overflow-hidden group flex flex-col"
               >
-                <div className="bg-gradient-to-br from-blue-50 to-orange-50 p-6 relative group-hover:from-blue-100 group-hover:to-orange-100 transition-colors">
-                  {livreur.verified && (
-                    <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-lg">
-                      <Check className="w-5 h-5 text-white" />
-                    </div>
-                  )}
+                {/* HEADER CARTE */}
+                <div className="p-6 flex flex-col items-center relative">
+                   
+                   {/* Badge Statut */}
+                   <div className="absolute top-4 left-4">
+                      {livreur.available ? (
+                         <span className="px-3 py-1 bg-green-50 text-green-700 text-[10px] font-bold uppercase tracking-wider rounded-full">Disponible</span>
+                      ) : (
+                         <span className="px-3 py-1 bg-gray-100 text-gray-500 text-[10px] font-bold uppercase tracking-wider rounded-full">Occupé</span>
+                      )}
+                   </div>
 
-                  {!livreur.available && (
-                    <div className="absolute top-4 left-4">
-                      <span className="bg-gray-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
-                        Occupé
-                      </span>
-                    </div>
-                  )}
-
-                  {livreur.available && (
-                    <div className="absolute top-4 left-4">
-                      <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow animate-pulse">
-                        Disponible
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="text-center">
-                    <div className="relative w-24 h-24 mx-auto mb-4">
-                      <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
-                        <Image
-                          src={livreur.profileImage}
-                          alt={livreur.name}
-                          width={96}
-                          height={96}
-                          className="w-full h-full object-cover"
-                          unoptimized
-                        />
+                   {/* Badge Vérifié */}
+                   {livreur.verified && (
+                      <div className="absolute top-4 right-4 text-emerald-500">
+                         <Check className="w-5 h-5" />
                       </div>
-                    </div>
-                    <h3 className="font-bold text-xl text-gray-900 mb-2">
-                      {livreur.name}
-                    </h3>
-                    <div className="flex items-center justify-center space-x-1 text-sm text-gray-600 mb-2">
-                      <MapPin className="w-4 h-4 text-orange-500" />
-                      <span className="font-medium">{livreur.location}</span>
-                      <span className="text-gray-400">→</span>
-                      <span className="font-medium">{livreur.destination}</span>
-                    </div>
-                    <p className="text-xs text-gray-500 italic">
-                      {livreur.description}
-                    </p>
-                  </div>
+                   )}
+
+                   {/* Avatar */}
+                   <div className="relative mb-4">
+                      <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-50">
+                         <Image
+                            src={livreur.profileImage}
+                            alt={livreur.name}
+                            width={96}
+                            height={96}
+                            className="w-full h-full object-cover"
+                            unoptimized
+                         />
+                      </div>
+                   </div>
+
+                   {/* Nom */}
+                   <h3 className="text-lg font-bold text-gray-900 mb-1">{livreur.name}</h3>
+                   
+                   {/* LOCALISATION + DRAPEAU (AVEC MAP PIN FORCÉ) */}
+                   <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mt-1">
+                      
+                      {/* L'icône MapPin est maintenant TOUJOURS visible pour indiquer la localisation */}
+                      <MapPin className="w-4 h-4 text-orange-500 shrink-0" />
+                      
+                      {/* Si la ville existe, on l'affiche */}
+                      {livreur.location && (
+                         <span>{livreur.location}</span>
+                      )}
+
+                      {/* Si le pays existe, on affiche le drapeau */}
+                      {livreur.countryCode && (
+                         <div className="flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded border border-gray-100">
+                            <Flag code={livreur.countryCode} className="w-5 h-3.5 object-cover rounded-[2px]" />
+                         </div>
+                      )}
+
+                   </div>
                 </div>
 
-                <div className="p-6">
-                  <div className="grid grid-cols-3 gap-3 mb-4">
-                    <div className="text-center">
-                      <div className="flex items-center justify-center space-x-1 mb-1">
-                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                        <span className="font-bold text-gray-900">{livreur.rating}</span>
+                {/* STATS */}
+                <div className="border-t border-gray-100 grid grid-cols-3 divide-x divide-gray-100 bg-gray-50/50">
+                   <div className="py-3 text-center">
+                      <div className="flex items-center justify-center gap-1 font-bold text-gray-900">
+                         <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                         {livreur.rating}
                       </div>
-                      <p className="text-xs text-gray-500">Note</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-bold text-gray-900 mb-1">{livreur.completedDeliveries}</div>
-                      <p className="text-xs text-gray-500">Livraisons</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-bold text-green-600 mb-1">{livreur.responseTime}</div>
-                      <p className="text-xs text-gray-500">Réponse</p>
-                    </div>
-                  </div>
+                      <p className="text-[10px] text-gray-400 uppercase mt-0.5">Avis</p>
+                   </div>
+                   <div className="py-3 text-center">
+                      <div className="font-bold text-gray-900">{livreur.completedDeliveries}</div>
+                      <p className="text-[10px] text-gray-400 uppercase mt-0.5">Colis</p>
+                   </div>
+                   <div className="py-3 text-center">
+                      <div className="font-bold text-green-600">{livreur.responseTime}</div>
+                      <p className="text-[10px] text-gray-400 uppercase mt-0.5">Réponse</p>
+                   </div>
+                </div>
 
-                  <div className="mb-4">
-                    <p className="text-xs text-gray-500 mb-2 font-medium">Spécialités:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {livreur.specialties.map((specialty, idx) => (
-                        <span
-                          key={idx}
-                          className="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-medium"
-                        >
-                          {specialty}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+                {/* TARIF */}
+                <div className="py-4 text-center">
+                   <p className="text-xs text-gray-400 font-bold uppercase">Tarif de base</p>
+                   <p className="text-xl font-black text-orange-500">{livreur.price}</p>
+                </div>
 
-                  <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-3 mb-4 text-center">
-                    <p className="text-xs text-gray-600 mb-1 font-medium">Tarif</p>
-                    <p className="text-2xl font-bold text-orange-600">{livreur.price}</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <button
+                {/* BOUTONS */}
+                <div className="p-4 pt-0 mt-auto grid grid-cols-2 gap-3">
+                   <button
                       onClick={(e) => handleWhatsAppContact(e, livreur.whatsapp, livreur.name)}
                       disabled={!livreur.available}
-                      className={`w-full py-3 px-4 rounded-xl flex items-center justify-center space-x-2 font-semibold transition-all ${
-                        livreur.available
-                          ? 'bg-green-500 hover:bg-green-600 text-white shadow-md hover:shadow-lg'
-                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      className={`py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-bold transition-colors ${
+                         livreur.available ? "bg-green-500 hover:bg-green-600 text-white" : "bg-gray-200 text-gray-400 cursor-not-allowed"
                       }`}
-                    >
-                      <MessageCircle className="w-5 h-5" />
-                      <span>WhatsApp</span>
-                    </button>
-
-                    <button
+                   >
+                      <MessageCircle className="w-4 h-4" /> WhatsApp
+                   </button>
+                   <button
                       onClick={(e) => handlePhoneContact(e, livreur.phone)}
                       disabled={!livreur.available}
-                      className={`w-full py-3 px-4 rounded-xl flex items-center justify-center space-x-2 font-semibold transition-all ${
-                        livreur.available
-                          ? 'bg-[#104C9E] hover:bg-[#0d3d7f] text-white shadow-md hover:shadow-lg'
-                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      className={`py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-bold transition-colors ${
+                         livreur.available ? "bg-[#104C9E] hover:bg-[#0d3d7f] text-white" : "bg-gray-200 text-gray-400 cursor-not-allowed"
                       }`}
-                    >
-                      <Phone className="w-5 h-5" />
-                      <span>Appeler</span>
-                    </button>
-                  </div>
+                   >
+                      <Phone className="w-4 h-4" /> Appeler
+                   </button>
                 </div>
+
               </Link>
             ))}
           </div>

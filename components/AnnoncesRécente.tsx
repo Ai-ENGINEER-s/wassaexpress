@@ -2,7 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowRight, MapPin, Heart, Mail, Calendar, CheckCircle, User, Package } from "lucide-react";
+import { 
+  ArrowRight, 
+  MapPin, 
+  Heart, 
+  Mail, 
+  Calendar, 
+  CheckCircle, 
+  User, 
+  Package, 
+  Plane,
+  Truck // Ajout de l'icône camion
+} from "lucide-react";
 import Flag from 'react-world-flags';
 
 // URL API
@@ -15,39 +26,36 @@ const AnnoncesRecente = () => {
   useEffect(() => {
     const fetchAnnonces = async () => {
       try {
-        // DIFFÉRENCE 1 : On charge 12 annonces
+        const decodeHtml = (html: string) => {
+            const txt = document.createElement("textarea");
+            txt.innerHTML = html;
+            return txt.value;
+        };
+
         const res = await fetch(`${WP_API_URL}/annonce?per_page=12&_embed`);
         const data = await res.json();
 
         const formattedData = data.map((item: any) => {
           const acf = item.acf || {};
           
-          // --- LOGIQUE EXACTE DE TOP ANNONCES ---
-          // 1. Récupération du texte exact (ex: "Transport Terrestre")
           const typeString = acf.type ? acf.type.toString() : 'GP';
           const typeLower = typeString.toLowerCase();
-          
-          // 2. Distinction Livreur vs Transport (GP/Terrestre)
           const isLivreur = typeLower.includes('livreur');
+          // Détection si c'est terrestre pour changer l'icône
+          const isTerrestre = typeLower.includes('terrestre') || typeLower.includes('camion');
 
           return {
             id: item.id,
             slug: item.slug,
-            title: item.title.rendered,
+            title: decodeHtml(item.title.rendered),
             location: acf.location || "Lieu non précisé",
             destination: acf.destination || "-",
             date: acf.date || "Date à définir",
             price: acf.price || "Prix non défini",
-            
-            // TEXTE DU BADGE : On garde le texte original (ex: "Transport Terrestre")
             badgeLabel: typeString,
-            
-            // CATÉGORIE VISUELLE : Si ce n'est pas un livreur, c'est un Transport (2 drapeaux)
             category: isLivreur ? 'livreur' : 'transport',
-            
-            // COULEUR : Vert pour livreur, Bleu pour GP et Transport Terrestre
-            badgeColor: isLivreur ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800",
-            
+            isTerrestre: isTerrestre, // Nouvelle propriété
+            badgeColor: isLivreur ? "bg-green-100 text-green-800" : "bg-[#E0F2FE] text-[#0369A1]",
             verified: acf.verified === true,
             departureCountryCode: acf.departurecountrycode,
             arrivalCountryCode: acf.arrivalcountrycode,
@@ -65,129 +73,166 @@ const AnnoncesRecente = () => {
     fetchAnnonces();
   }, []);
 
-  // --- COMPOSANT VISUEL (IDENTIQUE À TOP ANNONCES) ---
+  // --- NOUVEAU DESIGN VISUEL : LA "CAPSULE" ---
   const AnnonceVisual = ({ annonce }: { annonce: any }) => {
     
-    // CAS 1 : Transport International (GP OU Transport Terrestre) -> 2 Drapeaux
+    // Transport International (GP ou Camion)
     if (annonce.category === 'transport' && annonce.departureCountryCode && annonce.arrivalCountryCode) {
       return (
-        <div className="flex items-center justify-center space-x-3 w-full h-full">
-          <div className="relative">
-            <Flag code={annonce.departureCountryCode} className="w-16 h-12 rounded-md shadow-sm object-cover" style={{ width: '64px', height: '48px' }} />
-          </div>
-          <div className="flex items-center justify-center bg-gradient-to-r from-blue-500 to-blue-600 rounded-full p-2">
-            <ArrowRight className="w-5 h-5 text-white" />
-          </div>
-          <div className="relative">
-            <Flag code={annonce.arrivalCountryCode} className="w-16 h-12 rounded-md shadow-sm object-cover" style={{ width: '64px', height: '48px' }} />
-          </div>
+        <div className="w-full h-full flex items-center justify-center">
+            {/* La Capsule Flottante */}
+            <div className="bg-white px-4 py-3 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 transform transition-transform group-hover:scale-105">
+                
+                {/* Drapeau Départ */}
+                <div className="flex flex-col items-center gap-1">
+                    <Flag 
+                        code={annonce.departureCountryCode} 
+                        className="w-10 h-8 rounded shadow-sm object-cover ring-1 ring-gray-100" 
+                        style={{ width: '40px', height: '30px' }}
+                    />
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">{annonce.departureCountryCode}</span>
+                </div>
+
+                {/* Connecteur (Avion ou Camion) */}
+                <div className="flex flex-col items-center">
+                    <div className="w-16 border-t-2 border-dashed border-gray-300 relative top-3"></div>
+                    <div className="bg-[#F0F7FF] p-2 rounded-full relative z-10 text-[#104C9E]">
+                        {annonce.isTerrestre ? (
+                             <Truck className="w-5 h-5" />
+                        ) : (
+                             <Plane className="w-5 h-5" style={{ transform: 'rotate(45deg)' }} />
+                        )}
+                    </div>
+                </div>
+
+                {/* Drapeau Arrivée */}
+                <div className="flex flex-col items-center gap-1">
+                    <Flag 
+                        code={annonce.arrivalCountryCode} 
+                        className="w-10 h-8 rounded shadow-sm object-cover ring-1 ring-gray-100" 
+                        style={{ width: '40px', height: '30px' }}
+                    />
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">{annonce.arrivalCountryCode}</span>
+                </div>
+
+            </div>
         </div>
       );
     }
 
-    // CAS 2 : Livreur Local -> 1 Drapeau + Icône
+    // Livreur Local
     if (annonce.category === 'livreur' && annonce.departureCountryCode) {
         return (
-            <div className="flex flex-col items-center justify-center space-y-4 w-full h-full">
-              <div className="relative">
-                 <div className="absolute inset-0 flex items-center justify-center"><User className="w-24 h-24 text-gray-200" /></div>
-                 <div className="relative z-10 mt-8">
-                  <Flag code={annonce.departureCountryCode} className="w-20 h-14 rounded-lg shadow-md object-cover mx-auto" style={{ width: '80px', height: '56px' }} />
-                </div>
-              </div>
-              <span className="font-semibold text-gray-600 text-sm uppercase tracking-wide">Livreur local</span>
+            <div className="w-full h-full flex items-center justify-center">
+                 <div className="bg-white px-6 py-3 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
+                    <div className="bg-green-50 p-2 rounded-full">
+                        <User className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div className="h-8 w-px bg-gray-200"></div>
+                    <Flag 
+                        code={annonce.departureCountryCode} 
+                        className="w-10 h-8 rounded shadow-sm object-cover" 
+                        style={{ width: '40px', height: '30px' }}
+                    />
+                 </div>
             </div>
           );
     }
 
-    // CAS 3 : Fallback
     return (
-        <div className="flex items-center justify-center w-full h-full flex-col">
-          <Package className="w-16 h-16 text-gray-300 mb-2" />
-          <span className="text-xs text-gray-400">Pays manquants</span>
+        <div className="flex items-center justify-center w-full h-full flex-col text-gray-300">
+          <Package className="w-12 h-12 mb-1" />
         </div>
       );
   };
 
-  if (loading) return <div className="py-20 text-center text-gray-500">Chargement des annonces...</div>;
+  if (loading) return <div className="py-20 text-center text-gray-500 animate-pulse">Chargement des offres...</div>;
 
   return (
-    <section className="max-w-7xl mx-auto px-4 py-20">
-      {/* HEADER AVEC BOUTON */}
-      <div className="flex items-center justify-between mb-12">
-        <div>
-          <h2 className="text-4xl font-black text-[#104C9E]">Annonces Récentes</h2>
-          <p className="text-gray-600 text-lg">Les dernières opportunités disponibles</p>
+    <section className="max-w-7xl mx-auto px-4 py-20 bg-transparent">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row items-center justify-between mb-10 gap-4">
+        <div className="text-center sm:text-left">
+          <h2 className="text-3xl md:text-4xl font-black text-[#104C9E] tracking-tight">Dernières Annonces</h2>
+          <p className="text-gray-500 mt-2">Trouvez le transporteur idéal pour vos colis</p>
         </div>
         
-        <Link href="/annonces" className="text-orange-500 font-semibold hover:text-orange-600 flex items-center space-x-1 transition-colors">
-          <span>Voir tout</span>
-          <ArrowRight className="w-4 h-4" />
+        <Link href="/annonces" className="group flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-full hover:border-[#104C9E] hover:text-[#104C9E] transition-all shadow-sm">
+          <span className="font-semibold text-sm">Tout voir</span>
+          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
         </Link>
       </div>
 
-      {/* GRILLE IDENTIQUE */}
-      <div className="grid md:grid-cols-3 gap-8">
+      {/* GRILLE */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
         {recentAnnonces.map((annonce) => (
-          <div key={annonce.id} onClick={() => window.location.href = `/annonces/${annonce.slug}`} className="group cursor-pointer">
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col h-full transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-xl">
+          <div key={annonce.id} onClick={() => window.location.href = `/annonces/${annonce.slug}`} className="group cursor-pointer h-full">
+            <div className="bg-white rounded-3xl shadow-sm hover:shadow-xl border border-gray-100 overflow-hidden flex flex-col h-full transition-all duration-300 transform hover:-translate-y-1">
               
-              {/* Section visuelle */}
-              <div className="relative w-full h-52 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-6">
+              {/* ZONE VISUELLE (FOND DÉGRADÉ + CAPSULE) */}
+              <div className="relative w-full h-48 bg-[#F8FAFC] group-hover:bg-[#F1F5F9] transition-colors p-4">
                 
                 <AnnonceVisual annonce={annonce} />
                 
-                {/* Badge avec le BON texte (Transport Terrestre) et la BONNE couleur (Bleue) */}
-                <span className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold ${annonce.badgeColor} shadow-sm`}>
+                {/* Badge Type (Flottant en haut à gauche) */}
+                <span className={`absolute top-4 left-4 px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wider uppercase ${annonce.badgeColor}`}>
                   {annonce.badgeLabel}
                 </span>
                 
+                {/* Vérifié (Flottant en haut à droite) */}
                 {annonce.verified && (
-                  <CheckCircle className="absolute top-3 right-3 w-6 h-6 text-green-500 bg-white rounded-full shadow-sm" />
+                  <div className="absolute top-4 right-4 bg-white p-1.5 rounded-full shadow-sm" title="Vérifié">
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                  </div>
                 )}
               </div>
 
+              {/* CONTENU DE LA CARTE */}
               <div className="p-6 flex-grow flex flex-col">
-                {/* Titre avec gestion des caractères spéciaux */}
-                <h3 
-                    className="text-xl font-bold text-gray-900 mb-4 line-clamp-2"
-                    dangerouslySetInnerHTML={{ __html: annonce.title }} 
-                />
+                <div className="mb-4">
+                    <h3 className="text-lg font-bold text-gray-900 leading-tight line-clamp-2 group-hover:text-[#104C9E] transition-colors">
+                        {annonce.title}
+                    </h3>
+                </div>
                 
-                <div className="space-y-3 text-sm text-gray-700 mb-4">
-                  <div className="flex items-center">
-                    <MapPin className="w-4 h-4 text-gray-500 mr-2 flex-shrink-0" />
-                    <span>{annonce.location}</span>
+                <div className="space-y-2.5 text-sm text-gray-600 mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 flex justify-center"><MapPin className="w-4 h-4 text-gray-400" /></div>
+                    <span className="font-medium">{annonce.location}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 flex justify-center"><ArrowRight className="w-4 h-4 text-gray-400" /></div>
+                    <span className="font-medium">{annonce.destination}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 flex justify-center"><Calendar className="w-4 h-4 text-gray-400" /></div>
+                    <span className={`${annonce.date === 'Disponible' ? 'text-green-600 font-bold' : ''}`}>{annonce.date}</span>
+                  </div>
+                </div>
+
+                {/* FOOTER DE LA CARTE */}
+                <div className="pt-5 border-t border-gray-100 flex justify-between items-center mt-auto">
+                  <div>
+                      <span className="block text-xs text-gray-400 font-medium mb-0.5">Tarif</span>
+                      <span className="text-xl font-extrabold text-[#FF5722]">{annonce.price}</span>
                   </div>
                   
-                  <div className="flex items-center">
-                    <span className="text-gray-500 mr-2 w-24 flex-shrink-0">Destination :</span>
-                    <span className="font-semibold text-gray-900">{annonce.destination}</span>
-                  </div>
-
-                  <div className="flex items-center">
-                    <Calendar className="w-4 h-4 text-gray-500 mr-2 flex-shrink-0" />
-                    {annonce.date === 'Disponible' ? <span className="text-green-600 font-bold">{annonce.date}</span> : <span>{annonce.date}</span>}
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-gray-100 flex justify-between items-center mt-auto">
-                  <span className="text-2xl font-extrabold text-orange-500">{annonce.price}</span>
-                  <div className="flex space-x-3">
+                  <div className="flex gap-2">
                     <button 
-                      className="p-2 rounded-full hover:bg-red-50 transition-colors"
+                      className="w-9 h-9 rounded-full bg-gray-50 hover:bg-red-50 flex items-center justify-center transition-colors group/btn"
                       onClick={(e) => { e.stopPropagation(); }}
                     >
-                      <Heart className="w-5 h-5 text-gray-400 hover:text-red-500" />
+                      <Heart className="w-4 h-4 text-gray-400 group-hover/btn:text-red-500 group-hover/btn:fill-red-500 transition-all" />
                     </button>
                     <button 
-                      className="p-2 rounded-full hover:bg-blue-50 transition-colors"
+                      className="w-9 h-9 rounded-full bg-gray-50 hover:bg-[#104C9E] flex items-center justify-center transition-colors group/btn"
                       onClick={(e) => { e.stopPropagation(); }}
                     >
-                      <Mail className="w-5 h-5 text-gray-400 hover:text-blue-600" />
+                      <Mail className="w-4 h-4 text-gray-400 group-hover/btn:text-white transition-all" />
                     </button>
                   </div>
                 </div>
+
               </div>
             </div>
           </div>

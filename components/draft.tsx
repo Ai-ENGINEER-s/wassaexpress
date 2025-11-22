@@ -465,7 +465,7 @@ export default function HeroSectionSearch() {
 
 
 
-/// contact new design : 
+// contact new design : 
 
 
 'use client';
@@ -1125,6 +1125,427 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+
+
+// product 
+
+'use client';
+
+import React, { useState } from 'react';
+import {
+  Search,
+  MapPin,
+  ShoppingCart,
+  Star,
+  ArrowUpRight,
+  Sparkles,
+} from 'lucide-react';
+
+interface Product {
+  id: number;
+  nom: string;
+  categorie: string;
+  image: string;
+  description: string;
+  fournisseur: string;
+  ville: string;
+  rating: number;
+  badge: 'Populaire' | 'Bio' | 'Artisanal' | 'Nouveau' | 'Premium' | 'Tendance' | 'Traditionnel';
+}
+
+const badgeStyles: Record<string, string> = {
+  Populaire: 'from-orange-500 to-orange-600',
+  Bio: 'from-emerald-500 to-teal-600',
+  Artisanal: 'from-purple-500 to-pink-600',
+  Nouveau: 'from-blue-500 to-cyan-600',
+  Premium: 'from-yellow-500 to-orange-500',
+  Tendance: 'from-pink-500 to-rose-600',
+  Traditionnel: 'from-amber-600 to-orange-700',
+};
+
+const categories = [
+  'Tous',
+  'Électronique',
+  'Mode & Textile',
+  'Cosmétiques',
+  'Alimentation',
+  'Artisanat',
+  'Maroquinerie',
+];
+
+const produits: Product[] = [
+  {
+    id: 1,
+    nom: 'Smartphone Samsung Galaxy',
+    categorie: 'Électronique',
+    image:
+      'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?auto=format&fit=crop&w=800&q=80',
+    description: 'Smartphone dernière génération, disponible en plusieurs coloris',
+    fournisseur: 'Casa Electronics',
+    ville: 'Casablanca',
+    rating: 4.8,
+    badge: 'Populaire',
+  },
+  {
+    id: 2,
+    nom: 'Caftan Marocain Traditionnel',
+    categorie: 'Mode & Textile',
+    image:
+      'https://images.unsplash.com/photo-1583391733981-5aff4a3e6c48?auto=format&fit=crop&w=800&q=80',
+    description: 'Caftan traditionnel fait main, broderie premium',
+    fournisseur: 'Artisans de Fès',
+    ville: 'Fès',
+    rating: 5.0,
+    badge: 'Artisanal',
+  },
+  {
+    id: 3,
+    nom: "Huile d'Argan Bio",
+    categorie: 'Cosmétiques',
+    image:
+      'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=800&q=80',
+    description: "Huile d'argan 100% pure et bio, certifiée",
+    fournisseur: 'Coopérative Féminine',
+    ville: 'Essaouira',
+    rating: 4.9,
+    badge: 'Bio',
+  },
+  {
+    id: 4,
+    nom: 'Tajine Artisanal',
+    categorie: 'Artisanat',
+    image:
+      'https://images.unsplash.com/photo-1578500494198-246f612d03b3?auto=format&fit=crop&w=800&q=80',
+    description: 'Tajine en céramique peinte à la main',
+    fournisseur: 'Artisans Marrakech',
+    ville: 'Marrakech',
+    rating: 4.7,
+    badge: 'Artisanal',
+  },
+  {
+    id: 5,
+    nom: 'Sac Maroquinerie Premium',
+    categorie: 'Maroquinerie',
+    image:
+      'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80',
+    description: 'Sac en cuir véritable, travail artisanal',
+    fournisseur: 'Leather Masters',
+    ville: 'Tanger',
+    rating: 4.9,
+    badge: 'Premium',
+  },
+  {
+    id: 6,
+    nom: 'Tapis Berbère Authentique',
+    categorie: 'Artisanat',
+    image:
+      'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
+    description: 'Tapis tissé à la main selon la tradition berbère',
+    fournisseur: 'Tapis Atlas',
+    ville: 'Tazenakht',
+    rating: 5.0,
+    badge: 'Traditionnel',
+  },
+];
+
+export default function ProduitsPage() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Tous');
+  const [hoveredProduct, setHoveredProduct] = useState<number | null>(null);
+
+  const orange = '#ff8c42';
+  const accentPurple = '#9d4edd';
+
+  const filteredProducts = produits.filter((p) => {
+    const matchSearch =
+      p.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchCategory = selectedCategory === 'Tous' || p.categorie === selectedCategory;
+    return matchSearch && matchCategory;
+  });
+
+  const handleContactProduct = (p: Product) => {
+    window.location.href = `/contact?produit=${p.id}&nom=${encodeURIComponent(p.nom)}`;
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+      <style>{`
+        @keyframes pulse-glow {
+          0%, 100% { opacity: 0.15; }
+          50% { opacity: 0.3; }
+        }
+        @keyframes pulse-glow-slow {
+          0%, 100% { opacity: 0.15; }
+          50% { opacity: 0.3; }
+        }
+        .pulse-glow {
+          animation: pulse-glow 8s ease-in-out infinite;
+        }
+        .pulse-glow-slow {
+          animation: pulse-glow-slow 10s ease-in-out infinite 2s;
+        }
+      `}</style>
+
+      {/* HERO SECTION */}
+      <div className="relative min-h-screen flex items-center overflow-hidden">
+        {/* Animated background gradient */}
+        <div className="absolute inset-0">
+          <div 
+            className="absolute top-0 -right-40 w-80 h-80 rounded-full pulse-glow"
+            style={{
+              background: `radial-gradient(circle, ${orange} 0%, transparent 70%)`,
+            }}
+          />
+          <div 
+            className="absolute bottom-0 -left-40 w-96 h-96 rounded-full pulse-glow-slow"
+            style={{
+              background: `radial-gradient(circle, ${accentPurple} 0%, transparent 70%)`,
+            }}
+          />
+        </div>
+
+        {/* Content */}
+        <div className="relative z-10 w-full px-4 py-20">
+          <div className="max-w-4xl mx-auto text-center">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 backdrop-blur-md border" style={{
+              backgroundColor: 'rgba(255, 140, 66, 0.08)',
+              borderColor: 'rgba(255, 140, 66, 0.3)'
+            }}>
+              <Sparkles size={16} style={{ color: orange }} />
+              <span className="text-sm font-semibold" style={{ color: orange }}>Catalogue Exclusif</span>
+            </div>
+
+            {/* Title */}
+            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight">
+              Découvrez les
+              <span className="block" style={{
+                background: `linear-gradient(135deg, ${orange} 0%, ${accentPurple} 100%)`,
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}>
+                Trésors du Maroc
+              </span>
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-lg text-gray-300 mb-12 max-w-2xl mx-auto">
+              Une sélection curatée des meilleurs produits marocains, livrés directement chez vous
+            </p>
+
+            {/* Search Bar */}
+            <div className="max-w-2xl mx-auto mb-12">
+              <div className="relative group">
+                <div className="absolute inset-0 rounded-2xl opacity-75 group-hover:opacity-100 transition-opacity" style={{
+                  background: `linear-gradient(135deg, ${orange}, ${accentPurple})`,
+                }} />
+                <div className="relative bg-slate-900 rounded-2xl p-1">
+                  <div className="flex items-center gap-3 px-6 py-4 bg-slate-900 rounded-2xl">
+                    <Search size={20} style={{ color: orange }} />
+                    <input
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Rechercher un produit..."
+                      className="flex-1 bg-transparent outline-none text-white placeholder-gray-400 text-lg"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Categories */}
+            <div className="flex flex-wrap gap-3 justify-center">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className="px-6 py-2 rounded-full font-medium transition-all duration-300 backdrop-blur-sm"
+                  style={{
+                    backgroundColor: selectedCategory === cat ? orange : 'rgba(255, 255, 255, 0.05)',
+                    color: selectedCategory === cat ? '#0a0e14' : '#e5e7eb',
+                    border: selectedCategory === cat ? `1px solid ${orange}` : '1px solid rgba(255, 255, 255, 0.1)',
+                    transform: selectedCategory === cat ? 'scale(1.05)' : 'scale(1)',
+                  }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* PRODUCTS SECTION */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-20">
+        <div className="mb-12">
+          <p className="text-gray-400">
+            <span className="font-bold" style={{ color: orange }}>{filteredProducts.length}</span> produit(s) trouvé(s)
+          </p>
+        </div>
+
+        {filteredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredProducts.map((p) => (
+              <div
+                key={p.id}
+                onMouseEnter={() => setHoveredProduct(p.id)}
+                onMouseLeave={() => setHoveredProduct(null)}
+                className="group relative rounded-3xl overflow-hidden transition-all duration-500 cursor-pointer"
+                style={{
+                  transform: hoveredProduct === p.id ? 'translateY(-8px)' : 'translateY(0)',
+                }}
+              >
+                {/* Gradient border effect */}
+                <div 
+                  className="absolute inset-0 rounded-3xl p-px transition-all duration-500"
+                  style={{
+                    background: hoveredProduct === p.id 
+                      ? `linear-gradient(135deg, ${orange}, ${accentPurple})`
+                      : 'rgba(255, 255, 255, 0.1)',
+                  }}
+                />
+
+                {/* Card content */}
+                <div className="relative bg-slate-900 rounded-3xl overflow-hidden">
+                  {/* Image */}
+                  <div className="relative h-64 overflow-hidden bg-slate-800">
+                    <img
+                      src={p.image}
+                      alt={p.nom}
+                      className="w-full h-full object-cover transition-transform duration-700"
+                      style={{
+                        transform: hoveredProduct === p.id ? 'scale(1.1)' : 'scale(1)',
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                    {/* Badge */}
+                    <div className={`absolute top-4 left-4 px-4 py-2 rounded-full text-white text-xs font-bold uppercase tracking-wider bg-gradient-to-r ${badgeStyles[p.badge] ?? 'from-gray-600 to-gray-700'}`}>
+                      {p.badge}
+                    </div>
+
+                    {/* Floating icon on hover */}
+                    <div 
+                      className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center transition-all duration-500"
+                      style={{
+                        opacity: hoveredProduct === p.id ? 1 : 0,
+                        transform: hoveredProduct === p.id ? 'scale(1) rotate(0deg)' : 'scale(0) rotate(-45deg)',
+                      }}
+                    >
+                      <ArrowUpRight size={18} className="text-white" />
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-6">
+                    <p className="text-xs text-gray-500 uppercase tracking-widest mb-3">{p.categorie}</p>
+
+                    <h3 className="text-xl font-bold text-white mb-3">
+                      {p.nom}
+                    </h3>
+
+                    <p className="text-gray-400 text-sm mb-4 line-clamp-2">{p.description}</p>
+
+                    {/* Rating */}
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="flex gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            size={14}
+                            className={i < Math.floor(p.rating) ? 'fill-current' : ''}
+                            style={{
+                              color: i < Math.floor(p.rating) ? orange : '#374151'
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-sm text-gray-400">{p.rating}</span>
+                    </div>
+
+                    {/* Location */}
+                    <div className="flex items-center gap-2 text-sm text-gray-400 mb-6 pb-6 border-b border-gray-800">
+                      <MapPin size={14} style={{ color: orange }} />
+                      <span>{p.fournisseur} • {p.ville}</span>
+                    </div>
+
+                    {/* Button */}
+                    <button
+                      onClick={() => handleContactProduct(p)}
+                      className="w-full py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 group/btn"
+                      style={{
+                        backgroundColor: hoveredProduct === p.id ? orange : 'rgba(255, 140, 66, 0.15)',
+                        color: hoveredProduct === p.id ? '#0a0e14' : orange,
+                      }}
+                    >
+                      Je suis intéressé(e)
+                      <ArrowUpRight size={16} className="transition-transform" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20">
+            <ShoppingCart className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-white">Aucun produit trouvé</h3>
+            <p className="text-gray-400 mt-2">Essayez d'élargir votre recherche</p>
+          </div>
+        )}
+      </div>
+
+      {/* CTA SECTION */}
+      <div className="relative py-24 px-4">
+        <div 
+          className="absolute inset-0 rounded-3xl mx-4"
+          style={{
+            background: `linear-gradient(135deg, ${orange}15 0%, ${accentPurple}15 100%)`
+          }}
+        />
+        
+        <div className="relative max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-black text-white mb-4">
+            Vous cherchez quelque chose de spécifique ?
+          </h2>
+          <p className="text-gray-300 text-lg mb-10">
+            Notre équipe peut sourcer n'importe quel produit disponible au Maroc
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={() => window.location.href = '/contact'}
+              className="px-8 py-4 rounded-2xl font-bold transition-all duration-300 text-slate-900 hover:scale-105 active:scale-95"
+              style={{
+                backgroundColor: orange,
+              }}
+            >
+              Nous écrire
+            </button>
+
+            <a
+              href="tel:+212663833056"
+              className="px-8 py-4 rounded-2xl font-bold transition-all duration-300 backdrop-blur-md hover:scale-105 active:scale-95 border-2 inline-flex items-center justify-center"
+              style={{
+                backgroundColor: 'rgba(255, 140, 66, 0.1)',
+                borderColor: orange,
+                color: orange,
+              }}
+            >
+              +212 663-833056
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer spacing */}
+      <div className="h-12" />
     </div>
   );
 }

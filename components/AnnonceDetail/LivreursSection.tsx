@@ -1,13 +1,9 @@
-import {
-  Check,
-  MapPin,
-  Star,
-  MessageCircle,
-  Phone,
-  Package,
-} from 'lucide-react';
+import { Check, Star, MessageCircle, Phone, Bike, Truck } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
+
+// ... (Interfaces identiques au code précédent)
+// Copier-coller les interfaces AnnonceDetail ici si besoin, 
+// mais pour la clarté je mets juste le composant.
 
 interface Livreur {
   id: number;
@@ -38,176 +34,101 @@ interface LivreursSectionProps {
 export const LivreursSection = ({
   livreurs,
   destination,
-  annonceTitle,
   onWhatsAppContact,
   onPhoneContact,
 }: LivreursSectionProps) => {
   return (
-    <div className="mt-12">
-      <div className="mb-8">
-        <h2 className="text-3xl font-black text-[#104C9E] mb-2">
-          Livreurs disponibles pour cette destination
-        </h2>
-        <p className="text-gray-600 text-lg">
-          Choisissez un livreur professionnel pour votre colis vers {destination}
-        </p>
+    <div className="pt-8 border-t border-gray-200/60">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div>
+            <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2">
+                <Bike className="w-6 h-6 text-[#104C9E]" />
+                Livreurs à l'arrivée
+            </h2>
+            <p className="text-gray-500 mt-1">Professionnels vérifiés pour la livraison finale à {destination}</p>
+        </div>
+        {livreurs.length > 0 && (
+             <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-blue-50 text-blue-700 text-sm font-bold border border-blue-100">
+                {livreurs.length} disponibles
+             </span>
+        )}
       </div>
 
       {livreurs.length > 0 ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
           {livreurs.map((livreur) => (
-            <Link
-              key={livreur.id}
-              href={`/livreurs/${livreur.id}`}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer group"
-            >
-              <div className="bg-gradient-to-br from-blue-50 to-orange-50 p-6 relative group-hover:from-blue-100 group-hover:to-orange-100 transition-colors">
-                {livreur.verified && (
-                  <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-lg">
-                    <Check className="w-5 h-5 text-white" />
-                  </div>
-                )}
+            <div key={livreur.id} className="group bg-white rounded-3xl p-5 border border-gray-100 hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300 relative overflow-hidden">
+              {/* Indicateur Dispo */}
+              <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${livreur.available ? 'from-green-400/20' : 'from-gray-400/20'} to-transparent rounded-bl-[100%] -mr-4 -mt-4 transition-colors`}></div>
 
-                {!livreur.available && (
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-gray-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
-                      Occupé
-                    </span>
-                  </div>
-                )}
-
-                {livreur.available && (
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow animate-pulse">
-                      Disponible
-                    </span>
-                  </div>
-                )}
-
-                <div className="text-center">
-                  <div className="relative w-24 h-24 mx-auto mb-4">
-                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
-                      <Image
-                        src={livreur.profileImage}
-                        alt={livreur.name}
-                        width={96}
-                        height={96}
-                        className="w-full h-full object-cover"
-                        unoptimized
-                      />
+              <div className="flex items-start gap-4 mb-4 relative z-10">
+                 <div className="relative">
+                    <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-white shadow-md">
+                        <Image 
+                            src={livreur.profileImage} 
+                            alt={livreur.name} 
+                            width={64} height={64} 
+                            className="object-cover w-full h-full transition-transform group-hover:scale-110"
+                            unoptimized 
+                        />
                     </div>
-                  </div>
-                  <h3 className="font-bold text-xl text-gray-900 mb-2">
-                    {livreur.name}
-                  </h3>
-                  <div className="flex items-center justify-center space-x-1 text-sm text-gray-600 mb-2">
-                    <MapPin className="w-4 h-4 text-blue-500" />
-                    <span className="font-medium">{livreur.destination}</span>
-                  </div>
-                  <p className="text-xs text-gray-500 italic">
-                    {livreur.description}
-                  </p>
-                </div>
+                    {livreur.verified && (
+                        <div className="absolute -bottom-2 -right-2 bg-white p-1 rounded-full shadow-sm">
+                            <Check className="w-4 h-4 text-white bg-blue-500 rounded-full p-0.5" />
+                        </div>
+                    )}
+                 </div>
+                 
+                 <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-gray-900 truncate text-lg">{livreur.name}</h3>
+                    <div className="flex items-center text-sm text-gray-500 mb-1">
+                        <Star className="w-3.5 h-3.5 text-yellow-400 fill-current mr-1" />
+                        <span className="font-bold text-gray-800 mr-1">{livreur.rating}</span>
+                        <span className="text-gray-300">•</span>
+                        <span className="ml-1">{livreur.completedDeliveries} liv.</span>
+                    </div>
+                    <div className="text-xs text-[#104C9E] font-bold bg-blue-50 inline-block px-2 py-0.5 rounded-md">
+                        {livreur.transportFee}
+                    </div>
+                 </div>
               </div>
 
-              <div className="p-6">
-                <div className="grid grid-cols-3 gap-3 mb-4">
-                  <div className="text-center">
-                    <div className="flex items-center justify-center space-x-1 mb-1">
-                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                      <span className="font-bold text-gray-900">
-                        {livreur.rating}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500">Note</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-bold text-gray-900 mb-1">
-                      {livreur.completedDeliveries}
-                    </div>
-                    <p className="text-xs text-gray-500">Livraisons</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-bold text-green-600 mb-1">
-                      {livreur.responseTime}
-                    </div>
-                    <p className="text-xs text-gray-500">Réponse</p>
-                  </div>
-                </div>
+              <div className="flex flex-wrap gap-2 mb-6">
+                {livreur.specialties.slice(0, 2).map((s, i) => (
+                    <span key={i} className="text-[10px] uppercase tracking-wider font-bold text-gray-500 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
+                        {s}
+                    </span>
+                ))}
+              </div>
 
-                <div className="mb-4">
-                  <p className="text-xs text-gray-500 mb-2 font-medium">
-                    Spécialités:
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {livreur.specialties.map((specialty, idx) => (
-                      <span
-                        key={idx}
-                        className="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-medium"
-                      >
-                        {specialty}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-3 mb-4 text-center">
-                  <p className="text-xs text-gray-600 mb-1 font-medium">
-                    Frais de transport
-                  </p>
-                  <p className="text-2xl font-bold text-orange-600">
-                    {livreur.transportFee}
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onWhatsAppContact(livreur.whatsapp, livreur.name);
-                    }}
+              <div className="grid grid-cols-4 gap-2">
+                <button
+                  onClick={() => onWhatsAppContact(livreur.whatsapp, livreur.name)}
+                  disabled={!livreur.available}
+                  className={`col-span-3 py-3 rounded-xl flex items-center justify-center space-x-2 font-bold text-sm transition-all shadow-sm ${
+                      livreur.available 
+                      ? 'bg-gray-900 text-white hover:bg-gray-800 hover:shadow-md' 
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>{livreur.available ? 'Contacter' : 'Occupé'}</span>
+                </button>
+                <button
+                    onClick={() => onPhoneContact(livreur.phone)}
                     disabled={!livreur.available}
-                    className={`w-full py-3 px-4 rounded-xl flex items-center justify-center space-x-2 font-semibold transition-all ${
-                      livreur.available
-                        ? 'bg-green-500 hover:bg-green-600 text-white shadow-md hover:shadow-lg'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    }`}
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                    <span>WhatsApp</span>
-                  </button>
-
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onPhoneContact(livreur.phone);
-                    }}
-                    disabled={!livreur.available}
-                    className={`w-full py-3 px-4 rounded-xl flex items-center justify-center space-x-2 font-semibold transition-all ${
-                      livreur.available
-                        ? 'bg-[#104C9E] hover:bg-[#0d3d7f] text-white shadow-md hover:shadow-lg'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    }`}
-                  >
+                    className="col-span-1 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors"
+                >
                     <Phone className="w-5 h-5" />
-                    <span>Appeler</span>
-                  </button>
-                </div>
+                </button>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       ) : (
-        <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center">
-          <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">
-            Aucun livreur disponible pour le moment
-          </h3>
-          <p className="text-gray-500">
-            Revenez plus tard ou contactez directement l'annonceur
-          </p>
+        <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl p-12 text-center">
+          <Truck className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-500 font-medium">Aucun livreur disponible dans cette zone.</p>
         </div>
       )}
     </div>
